@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arena Beach – Pedidos de Compra</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="../css/modern.css">
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon"><i class="ph-fill ph-beach-ball"></i></div>
+                <div>
+                    <h2>Arena Beach</h2><span>Gestão Esportiva</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-label">Principal</div>
+                    <a href="index.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-chart-line-up"></i></span> Dashboard</a>
+                    <a href="students.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-graduation-cap"></i></span> Alunos</a>
+                    <a href="customers.html" class="nav-item"><span class="nav-icon"><i class="ph ph-users"></i></span>
+                        Clientes</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Estoque</div>
+                    <a href="inventory.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-package"></i></span> Estoque</a>
+                    <a href="purchase_orders.html" class="nav-item active"><span class="nav-icon"><i
+                                class="ph ph-truck"></i></span> Pedidos de Compra</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Bar / PDV</div>
+                    <a href="bar.html" class="nav-item"><span class="nav-icon"><i class="ph ph-beer-stein"></i></span>
+                        PDV / Caixa</a>
+                    <a href="tabs.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-clipboard-text"></i></span> Comandas</a>
+                    <a href="cash_register.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-cash-register"></i></span> Caixa Diário</a>
+                    <a href="sales_history.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-receipt"></i></span> Histórico</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Relatórios</div>
+                    <a href="reports.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-chart-pie-slice"></i></span> Relatórios</a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">Arena Beach v2.0</div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+        <div class="main">
+            <header class="topbar">
+                <div class="flex items-center gap-3">
+                    <button class="mobile-toggle" onclick="openSidebar()">☰</button>
+                    <h1>Pedidos de Compra</h1>
+                </div>
+                <div class="topbar-right">
+                    <button class="btn btn-ghost btn-sm" onclick="showSection('suppliers')"><i
+                            class="ph ph-factory"></i> Fornecedores</button>
+                    <button class="btn btn-primary" onclick="openNewOrderModal()"><i class="ph ph-plus-circle"></i> Novo
+                        Pedido</button>
+                </div>
+            </header>
+            <div class="page-content">
+
+                <!-- Suppliers Section (toggle) -->
+                <div id="suppliersSection" style="display:none" class="card mb-6">
+                    <div class="card-header">
+                        <span class="card-title">Fornecedores</span>
+                        <button class="btn btn-ghost btn-sm" onclick="hideSuppliersSection()">✕ Fechar</button>
+                    </div>
+                    <div class="filter-bar mb-4">
+                        <button class="btn btn-primary btn-sm" onclick="openSupplierModal()">+ Novo Fornecedor</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Telefone</th>
+                                    <th>E-mail</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="suppliersTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Orders Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Pedidos de Compra</span>
+                        <div class="flex gap-2">
+                            <select id="orderStatusFilter" class="form-control" style="width:auto;font-size:12px"
+                                onchange="filterOrders()">
+                                <option value="">Todos</option>
+                                <option value="Pending">Pendentes</option>
+                                <option value="Received">Recebidos</option>
+                                <option value="Cancelled">Cancelados</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Fornecedor</th>
+                                    <th>Data</th>
+                                    <th>Itens</th>
+                                    <th>Total Custo</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ordersTable">
+                                <tr>
+                                    <td colspan="7">
+                                        <div class="loader">
+                                            <div class="spinner"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supplier Modal -->
+    <div class="modal-overlay" id="supplierModal">
+        <div class="modal" style="max-width:400px">
+            <div class="modal-header"><span class="modal-title" id="supModalTitle">Novo Fornecedor</span><button
+                    class="modal-close"
+                    onclick="document.getElementById('supplierModal').classList.remove('open')">✕</button></div>
+            <form onsubmit="saveSupplier(event)">
+                <input type="hidden" id="supplierId">
+                <div class="form-group"><label class="form-label">Nome *</label><input id="supName" class="form-control"
+                        required placeholder="Fornecedor ABC"></div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Telefone</label><input id="supPhone"
+                            class="form-control" placeholder="(11) 99999-9999"></div>
+                    <div class="form-group"><label class="form-label">E-mail</label><input id="supEmail"
+                            class="form-control" placeholder="email@fornecedor.com"></div>
+                </div>
+                <div class="form-actions"><button type="button" class="btn btn-ghost"
+                        onclick="document.getElementById('supplierModal').classList.remove('open')">Cancelar</button><button
+                        type="submit" class="btn btn-primary">Salvar</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- New Order Modal -->
+    <div class="modal-overlay" id="newOrderModal">
+        <div class="modal" style="max-width:580px">
+            <div class="modal-header"><span class="modal-title">Novo Pedido de Compra</span><button class="modal-close"
+                    onclick="document.getElementById('newOrderModal').classList.remove('open')">✕</button></div>
+            <div class="form-row mb-4">
+                <div class="form-group"><label class="form-label">Fornecedor *</label><select id="orderSupplier"
+                        class="form-control" required>
+                        <option value="">Selecionar...</option>
+                    </select></div>
+                <div class="form-group"><label class="form-label">Observações</label><input id="orderNotes"
+                        class="form-control" placeholder="Observações opcionais..."></div>
+            </div>
+            <div class="card-title mb-4">Itens do Pedido</div>
+            <div id="orderItems"></div>
+            <button type="button" class="btn btn-ghost btn-sm mt-4" onclick="addOrderItem()">+ Adicionar Item</button>
+            <div class="form-actions mt-4">
+                <button class="btn btn-ghost"
+                    onclick="document.getElementById('newOrderModal').classList.remove('open')">Cancelar</button>
+                <button class="btn btn-primary" onclick="createOrder()">Criar Pedido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Detail Modal -->
+    <div class="modal-overlay" id="orderDetailModal">
+        <div class="modal">
+            <div class="modal-header"><span class="modal-title" id="odTitle">Pedido #</span><button class="modal-close"
+                    onclick="document.getElementById('orderDetailModal').classList.remove('open')">✕</button></div>
+            <div id="odBody"></div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <script>
+        const API = '';
+        let allOrders = [], suppliers = [], products = [], orderItemCount = 0;
+        const fmt = v => 'R$ ' + parseFloat(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+        const statusBadge = { 'Pending': 'badge-orange', 'Received': 'badge-green', 'Cancelled': 'badge-red' };
+        const statusLabel = { 'Pending': 'Pendente', 'Received': 'Recebido', 'Cancelled': 'Cancelado' };
+        function toast(msg, type = 'info') { const c = document.getElementById('toastContainer'); const t = document.createElement('div'); t.className = `toast ${type}`; t.innerHTML = `<i class="ph-bold ${type === 'success' ? 'ph-check-circle' : type === 'error' ? 'ph-x-circle' : 'ph-info'}"></i><span>${msg}</span>`; c.appendChild(t); setTimeout(() => t.remove(), 4000); }
+        function openSidebar() { document.getElementById('sidebar').classList.add('mobile-open'); document.getElementById('sidebarOverlay').classList.add('visible'); }
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('sidebarOverlay').classList.remove('visible'); }
+
+        async function load() {
+            try {
+                [allOrders, suppliers, products] = await Promise.all([
+                    fetch(`${API}/api/purchaseorders`).then(r => r.json()),
+                    fetch(`${API}/api/suppliers`).then(r => r.json()),
+                    fetch(`${API}/api/products`).then(r => r.json())
+                ]);
+                renderOrders(allOrders);
+                renderSuppliers();
+            } catch (e) { toast('Erro ao carregar dados', 'error'); }
+        }
+
+        function filterOrders() {
+            const status = document.getElementById('orderStatusFilter').value;
+            renderOrders(status ? allOrders.filter(o => o.status === status) : allOrders);
+        }
+
+        function renderOrders(list) {
+            const tbody = document.getElementById('ordersTable');
+            if (!list.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted)">Nenhum pedido encontrado</td></tr>'; return; }
+            tbody.innerHTML = list.map(o => `<tr>
+    <td>#${o.id}</td>
+    <td style="font-weight:600;color:var(--text-primary)">${o.supplierName || '–'}</td>
+    <td>${new Date(o.orderDate).toLocaleDateString('pt-BR')}</td>
+    <td>${o.itemCount} item(s)</td>
+    <td style="color:var(--orange);font-weight:600">${fmt(o.totalCost)}</td>
+    <td><span class="badge ${statusBadge[o.status] || 'badge-gray'}">${statusLabel[o.status] || o.status}</span></td>
+    <td class="flex gap-2">
+      <button class="btn btn-ghost btn-sm" onclick="showOrderDetail(${o.id})"><i class="ph ph-eye"></i></button>
+      ${o.status === 'Pending' ? `<button class="btn btn-success btn-sm" onclick="receiveOrder(${o.id})"><i class="ph ph-check-circle"></i> Receber</button><button class="btn btn-danger btn-sm" onclick="cancelOrder(${o.id})"><i class="ph ph-x"></i></button>` : ''}
+    </td>
+  </tr>`).join('');
+        }
+
+        function renderSuppliers() {
+            const tbody = document.getElementById('suppliersTable');
+            if (!suppliers.length) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">Nenhum fornecedor</td></tr>'; return; }
+            tbody.innerHTML = suppliers.map(s => `<tr>
+    <td style="font-weight:600;color:var(--text-primary)">${s.name}</td>
+    <td>${s.phone || '–'}</td><td>${s.email || '–'}</td>
+    <td><button class="btn btn-ghost btn-sm" onclick="openSupplierModal(${s.id})"><i class="ph ph-pencil"></i></button></td>
+  </tr>`).join('');
+        }
+
+        function showSection(sec) { document.getElementById('suppliersSection').style.display = ''; }
+        function hideSuppliersSection() { document.getElementById('suppliersSection').style.display = 'none'; }
+
+        function openSupplierModal(id = null) {
+            document.getElementById('supplierId').value = id || '';
+            document.getElementById('supModalTitle').textContent = id ? 'Editar Fornecedor' : 'Novo Fornecedor';
+            document.getElementById('supName').value = ''; document.getElementById('supPhone').value = ''; document.getElementById('supEmail').value = '';
+            if (id) { const s = suppliers.find(x => x.id === id); if (s) { document.getElementById('supName').value = s.name; document.getElementById('supPhone').value = s.phone || ''; document.getElementById('supEmail').value = s.email || ''; } }
+            document.getElementById('supplierModal').classList.add('open');
+        }
+
+        async function saveSupplier(e) {
+            e.preventDefault();
+            const id = document.getElementById('supplierId').value;
+            const body = { name: document.getElementById('supName').value, phone: document.getElementById('supPhone').value || null, email: document.getElementById('supEmail').value || null };
+            if (id) body.id = parseInt(id);
+            try {
+                const res = await fetch(`${API}/api/suppliers${id ? '/' + id : ''}`, { method: id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                if (!res.ok) throw new Error(await res.text());
+                toast('Fornecedor salvo!', 'success'); document.getElementById('supplierModal').classList.remove('open'); load();
+            } catch (err) { toast('Erro: ' + err.message, 'error'); }
+        }
+
+        function openNewOrderModal() {
+            orderItemCount = 0;
+            document.getElementById('orderItems').innerHTML = '';
+            document.getElementById('orderNotes').value = '';
+            const sel = document.getElementById('orderSupplier');
+            sel.innerHTML = '<option value="">Selecionar...</option>' + suppliers.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            addOrderItem();
+            document.getElementById('newOrderModal').classList.add('open');
+        }
+
+        function addOrderItem() {
+            orderItemCount++;
+            const id = orderItemCount;
+            const prodOptions = products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            const div = document.createElement('div');
+            div.id = `oi_${id}`;
+            div.className = 'flex gap-2 mb-3 items-center';
+            div.innerHTML = `
+    <select class="form-control" id="oi_prod_${id}"><option value="">Produto...</option>${prodOptions}</select>
+    <input type="number" class="form-control" id="oi_qty_${id}" placeholder="Qtd" min="1" style="width:80px">
+    <input type="number" step="0.01" class="form-control" id="oi_cost_${id}" placeholder="Custo R$" style="width:110px">
+    <button type="button" class="btn btn-danger btn-sm" onclick="document.getElementById('oi_${id}').remove()">✕</button>`;
+            document.getElementById('orderItems').appendChild(div);
+        }
+
+        async function createOrder() {
+            const supplierId = document.getElementById('orderSupplier').value;
+            if (!supplierId) { toast('Selecione um fornecedor', 'warning'); return; }
+            const items = [];
+            document.querySelectorAll('[id^="oi_prod_"]').forEach(sel => {
+                const suffix = sel.id.replace('oi_prod_', '');
+                const pid = parseInt(sel.value); const qty = parseInt(document.getElementById(`oi_qty_${suffix}`).value || 0); const cost = parseFloat(document.getElementById(`oi_cost_${suffix}`).value || 0);
+                if (pid && qty > 0 && cost > 0) items.push({ productId: pid, quantity: qty, costPrice: cost });
+            });
+            if (!items.length) { toast('Adicione pelo menos um item válido', 'warning'); return; }
+            try {
+                const res = await fetch(`${API}/api/purchaseorders`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ supplierId: parseInt(supplierId), notes: document.getElementById('orderNotes').value || null, items }) });
+                if (!res.ok) throw new Error(await res.text());
+                toast('Pedido criado!', 'success'); document.getElementById('newOrderModal').classList.remove('open'); load();
+            } catch (err) { toast('Erro: ' + err.message, 'error'); }
+        }
+
+        async function receiveOrder(id) {
+            if (!confirm('Confirmar recebimento? O estoque será atualizado.')) return;
+            try {
+                const res = await fetch(`${API}/api/purchaseorders/${id}/receive`, { method: 'POST' });
+                if (!res.ok) throw new Error(await res.text());
+                toast('Pedido recebido! Estoque atualizado.', 'success'); load();
+            } catch (err) { toast('Erro: ' + err.message, 'error'); }
+        }
+
+        async function cancelOrder(id) {
+            if (!confirm('Cancelar este pedido?')) return;
+            try {
+                await fetch(`${API}/api/purchaseorders/${id}/cancel`, { method: 'POST' });
+                toast('Pedido cancelado.', 'success'); load();
+            } catch (e) { toast('Erro', 'error'); }
+        }
+
+        async function showOrderDetail(id) {
+            const o = allOrders.find(x => x.id === id); if (!o) return;
+            document.getElementById('odTitle').textContent = `Pedido #${o.id} – ${o.supplierName}`;
+            // reload with full items
+            try {
+                const full = await fetch(`${API}/api/purchaseorders/${id}`).then(r => r.json());
+                document.getElementById('odBody').innerHTML = `
+      <div class="flex gap-2 mb-4"><span class="badge ${statusBadge[full.status] || 'badge-gray'}">${statusLabel[full.status]}</span><span class="text-muted">Data: ${new Date(full.orderDate).toLocaleDateString('pt-BR')}</span></div>
+      <div class="table-wrap"><table><thead><tr><th>Produto</th><th>Qtd</th><th>Custo Unit.</th><th>Subtotal</th></tr></thead>
+        <tbody>${(full.items || []).map(i => `<tr><td>${i.productName}</td><td>${i.quantity}</td><td>${fmt(i.costPrice)}</td><td style="color:var(--orange)">${fmt(i.subtotal)}</td></tr>`).join('')}</tbody>
+      </table></div>
+      <div class="flex justify-between" style="border-top:1px solid var(--border);padding-top:14px;margin-top:8px">
+        <span style="font-weight:700">Total de Custo</span><span style="font-size:20px;font-weight:800;color:var(--orange)">${fmt(full.totalCost)}</span>
+      </div>`;
+            } catch (e) { document.getElementById('odBody').innerHTML = '<p class="text-muted">Erro ao carregar detalhes</p>'; }
+            document.getElementById('orderDetailModal').classList.add('open');
+        }
+
+        load();
+    </script>
+</body>
+
+</html>

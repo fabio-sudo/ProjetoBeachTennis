@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arena Beach – Comandas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="../css/modern.css">
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon"><i class="ph-fill ph-beach-ball"></i></div>
+                <div>
+                    <h2>Arena Beach</h2><span>Gestão Esportiva</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-label">Principal</div>
+                    <a href="index.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-chart-line-up"></i></span> Dashboard</a>
+                    <a href="students.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-graduation-cap"></i></span> Alunos</a>
+                    <a href="customers.html" class="nav-item"><span class="nav-icon"><i class="ph ph-users"></i></span>
+                        Clientes</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Bar / PDV</div>
+                    <a href="bar.html" class="nav-item"><span class="nav-icon"><i class="ph ph-beer-stein"></i></span>
+                        PDV / Caixa</a>
+                    <a href="tabs.html" class="nav-item active"><span class="nav-icon"><i
+                                class="ph ph-clipboard-text"></i></span> Comandas</a>
+                    <a href="cash_register.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-cash-register"></i></span> Caixa Diário</a>
+                    <a href="sales_history.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-receipt"></i></span> Histórico</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Estoque</div>
+                    <a href="inventory.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-package"></i></span> Estoque</a>
+                    <a href="purchase_orders.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-truck"></i></span> Pedidos de Compra</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Relatórios</div>
+                    <a href="reports.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-chart-pie-slice"></i></span> Relatórios</a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">Arena Beach v2.0</div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+        <div class="main">
+            <header class="topbar">
+                <div class="flex items-center gap-3">
+                    <button class="mobile-toggle" onclick="openSidebar()">☰</button>
+                    <h1>Comandas</h1>
+                </div>
+                <div class="topbar-right">
+                    <button class="btn btn-primary" onclick="openNewTab()">+ Nova Comanda</button>
+                </div>
+            </header>
+            <div class="page-content">
+                <div class="grid-2 mb-6">
+                    <!-- Open Tabs -->
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title" style="color:var(--green)">● Comandas Abertas</span>
+                            <span class="badge badge-green" id="openCount">0</span>
+                        </div>
+                        <div id="openTabsList"></div>
+                    </div>
+                    <!-- Tab Detail -->
+                    <div class="card" id="tabDetailCard">
+                        <div style="text-align:center;padding:40px;color:var(--text-muted)">
+                            <div style="font-size:40px"><i class="ph ph-clipboard-text"></i></div>
+                            <div>Selecione uma comanda para ver detalhes</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Closed Tabs -->
+                <div class="card">
+                    <div class="card-header"><span class="card-title">Comandas Fechadas (Hoje)</span></div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Cliente</th>
+                                    <th>Abertura</th>
+                                    <th>Fechamento</th>
+                                    <th>Total</th>
+                                    <th>Venda</th>
+                                </tr>
+                            </thead>
+                            <tbody id="closedTabsTable">
+                                <tr>
+                                    <td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted)">
+                                        Carregando...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Tab Modal -->
+    <div class="modal-overlay" id="newTabModal">
+        <div class="modal" style="max-width:400px">
+            <div class="modal-header"><span class="modal-title">Nova Comanda</span><button class="modal-close"
+                    onclick="document.getElementById('newTabModal').classList.remove('open')">✕</button></div>
+            <div class="form-group"><label class="form-label">Número / Mesa (opcional)</label><input id="tabTableNum"
+                    class="form-control" placeholder="Ex: Mesa 5, Quadra 2..."></div>
+            <div class="form-group"><label class="form-label">Cliente (opcional)</label>
+                <select id="tabCustomer" class="form-control">
+                    <option value="">Anônimo</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-ghost"
+                    onclick="document.getElementById('newTabModal').classList.remove('open')">Cancelar</button>
+                <button class="btn btn-primary" onclick="createTab()">Abrir Comanda</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Close Tab Modal -->
+    <div class="modal-overlay" id="closeTabModal">
+        <div class="modal" style="max-width:400px">
+            <div class="modal-header"><span class="modal-title">Fechar Comanda</span><button class="modal-close"
+                    onclick="document.getElementById('closeTabModal').classList.remove('open')">✕</button></div>
+            <div
+                style="margin-bottom:16px;padding:14px;background:var(--bg-tertiary);border-radius:var(--radius-sm);text-align:center">
+                <div style="font-size:12px;color:var(--text-muted)">Total da Comanda</div>
+                <div style="font-size:28px;font-weight:800;color:var(--accent)" id="closeTabTotal">R$ 0,00</div>
+            </div>
+            <div class="form-group"><label class="form-label">Forma de Pagamento</label>
+                <div class="flex gap-2" style="flex-wrap:wrap">
+                    <button class="btn btn-ghost pay-type-close" data-p="Dinheiro" onclick="selectClosePayType(this)"><i
+                            class="ph ph-money"></i> Dinheiro</button>
+                    <button class="btn btn-ghost pay-type-close" data-p="Cartão Crédito"
+                        onclick="selectClosePayType(this)"><i class="ph ph-credit-card"></i> Crédito</button>
+                    <button class="btn btn-ghost pay-type-close" data-p="Cartão Débito"
+                        onclick="selectClosePayType(this)"><i class="ph ph-credit-card"></i> Débito</button>
+                    <button class="btn btn-ghost pay-type-close" data-p="PIX" onclick="selectClosePayType(this)"><i
+                            class="ph ph-lightning"></i> PIX</button>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-ghost"
+                    onclick="document.getElementById('closeTabModal').classList.remove('open')">Cancelar</button>
+                <button class="btn btn-success" id="confirmCloseBtn" onclick="confirmClose()" disabled>✅ Fechar e Gerar
+                    Venda</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <script>
+        const API = '';
+        let allTabs = [], selectedTabId = null, closePayType = '';
+        const fmt = v => 'R$ ' + parseFloat(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+
+        function toast(msg, type = 'info') { const c = document.getElementById('toastContainer'); const t = document.createElement('div'); t.className = `toast ${type}`; t.innerHTML = `<i class="ph-bold ${type === 'success' ? 'ph-check-circle' : type === 'error' ? 'ph-x-circle' : 'ph-info'}"></i><span>${msg}</span>`; c.appendChild(t); setTimeout(() => t.remove(), 4000); }
+        function openSidebar() { document.getElementById('sidebar').classList.add('mobile-open'); document.getElementById('sidebarOverlay').classList.add('visible'); }
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('sidebarOverlay').classList.remove('visible'); }
+
+        async function loadTabs() {
+            try {
+                allTabs = await fetch(`${API}/api/tabs`).then(r => r.json());
+                const open = allTabs.filter(t => t.status === 'Open');
+                const closed = allTabs.filter(t => t.status === 'Closed');
+                document.getElementById('openCount').textContent = open.length;
+                const openList = document.getElementById('openTabsList');
+                if (!open.length) { openList.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted)">Nenhuma comanda aberta</div>'; }
+                else openList.innerHTML = open.map(t => `
+      <div onclick="showTab(${t.id})" style="padding:12px 14px;border-bottom:1px solid var(--border-light);cursor:pointer;border-radius:var(--radius-sm);transition:background 0.15s"
+        onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background=''" >
+        <div class="flex justify-between"><span style="font-weight:600;color:var(--text-primary)">Comanda #${t.id} ${t.tableNumber ? '– ' + t.tableNumber : ''}</span><span class="badge badge-green">Aberta</span></div>
+        <div class="flex justify-between mt-1"><span style="font-size:12px;color:var(--text-muted)">${t.customerName}</span><span style="font-weight:700;color:var(--accent)">${fmt(t.total)}</span></div>
+      </div>`).join('');
+                const tbody = document.getElementById('closedTabsTable');
+                if (!closed.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted)">Nenhuma comanda fechada hoje</td></tr>'; }
+                else tbody.innerHTML = closed.slice(0, 20).map(t => `<tr>
+      <td>#${t.id}</td><td>${t.customerName}</td>
+      <td>${new Date(t.openedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td>
+      <td>${t.closedAt ? new Date(t.closedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '–'}</td>
+      <td style="font-weight:600;color:var(--green)">${fmt(t.total)}</td>
+      <td>${t.saleId ? '<span class="badge badge-blue">Venda #' + t.saleId + '</span>' : '–'}</td>
+    </tr>`).join('');
+            } catch (e) { toast('Erro ao carregar comandas', 'error'); }
+        }
+
+        async function showTab(id) {
+            selectedTabId = id;
+            try {
+                const t = await fetch(`${API}/api/tabs/${id}`).then(r => r.json());
+                document.getElementById('tabDetailCard').innerHTML = `
+      <div class="flex justify-between items-center mb-4">
+        <div><div style="font-weight:700;font-size:16px">Comanda #${t.id} ${t.tableNumber ? '– ' + t.tableNumber : ''}</div><div style="font-size:12px;color:var(--text-muted)">${t.customerName} · Aberta ${new Date(t.openedAt).toLocaleTimeString('pt-BR')}</div></div>
+        <button class="btn btn-danger btn-sm" onclick="openCloseTab(${t.id},${t.total || 0})">Fechar Comanda</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Produto</th><th>Qtd</th><th>Unitário</th><th>Subtotal</th><th></th></tr></thead>
+          <tbody>${t.items.map(i => `<tr>
+            <td style="font-weight:500;color:var(--text-primary)">${i.productName}</td>
+            <td>${i.quantity}</td><td>${fmt(i.unitPrice)}</td><td style="color:var(--green)">${fmt(i.subtotal)}</td>
+            <td><button class="btn btn-danger btn-sm" onclick="removeItem(${t.id},${i.id})"><i class="ph ph-trash"></i></button></td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>
+      <div class="flex justify-between" style="padding:14px 0;border-top:1px solid var(--border-light);margin-top:8px">
+        <span style="font-weight:600">Total</span><span style="font-size:20px;font-weight:800;color:var(--accent)">${fmt(t.total)}</span>
+      </div>`;
+            } catch (e) { toast('Erro ao carregar detalhe', 'error'); }
+        }
+
+        async function removeItem(tabId, itemId) {
+            try {
+                await fetch(`${API}/api/tabs/${tabId}/items/${itemId}`, { method: 'DELETE' });
+                toast('Item removido.', 'success'); loadTabs(); showTab(tabId);
+            } catch (e) { toast('Erro', 'error'); }
+        }
+
+        function openNewTab() {
+            document.getElementById('tabTableNum').value = '';
+            document.getElementById('newTabModal').classList.add('open');
+            loadCustomers();
+        }
+
+        async function loadCustomers() {
+            try {
+                const custs = await fetch(`${API}/api/customers`).then(r => r.json());
+                const sel = document.getElementById('tabCustomer');
+                sel.innerHTML = '<option value="">Anônimo</option>' + custs.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            } catch (e) { }
+        }
+
+        async function createTab() {
+            const tableNum = document.getElementById('tabTableNum').value;
+            const custId = document.getElementById('tabCustomer').value;
+            try {
+                const res = await fetch(`${API}/api/tabs`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customerId: custId || null, tableNumber: tableNum || null }) });
+                if (!res.ok) throw new Error(await res.text());
+                toast('Comanda aberta!', 'success');
+                document.getElementById('newTabModal').classList.remove('open');
+                loadTabs();
+            } catch (e) { toast('Erro: ' + e.message, 'error'); }
+        }
+
+        function openCloseTab(id, total) {
+            closePayType = ''; selectedTabId = id;
+            document.getElementById('closeTabTotal').textContent = fmt(total);
+            document.getElementById('confirmCloseBtn').disabled = true;
+            document.querySelectorAll('.pay-type-close').forEach(b => b.className = 'btn btn-ghost pay-type-close');
+            document.getElementById('closeTabModal').classList.add('open');
+        }
+        function selectClosePayType(btn) {
+            document.querySelectorAll('.pay-type-close').forEach(b => b.className = 'btn btn-ghost pay-type-close');
+            btn.classList.add('btn-primary');
+            closePayType = btn.dataset.p;
+            document.getElementById('confirmCloseBtn').disabled = false;
+        }
+        async function confirmClose() {
+            document.getElementById('confirmCloseBtn').disabled = true;
+            try {
+                const res = await fetch(`${API}/api/tabs/${selectedTabId}/close`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ paymentType: closePayType }) });
+                if (!res.ok) throw new Error(await res.text());
+                const data = await res.json();
+                toast(`Comanda fechada! Venda #${data.saleId} · ${fmt(data.total)}`, 'success');
+                document.getElementById('closeTabModal').classList.remove('open');
+                selectedTabId = null; loadTabs();
+                document.getElementById('tabDetailCard').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)"><div style="font-size:40px">📋</div><div>Selecione uma comanda para ver detalhes</div></div>';
+            } catch (e) { toast('Erro: ' + e.message, 'error'); document.getElementById('confirmCloseBtn').disabled = false; }
+        }
+
+        loadTabs();
+    </script>
+</body>
+
+</html>

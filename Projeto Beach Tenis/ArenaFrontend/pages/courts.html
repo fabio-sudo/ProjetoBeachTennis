@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arena Beach – Quadras</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="../css/modern.css">
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon"><i class="ph-fill ph-beach-ball"></i></div>
+                <div>
+                    <h2>Arena Beach</h2><span>Gestão Esportiva</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-label">Principal</div>
+                    <a href="index.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-chart-line-up"></i></span> Dashboard</a>
+                    <a href="students.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-graduation-cap"></i></span> Alunos</a>
+                    <a href="customers.html" class="nav-item"><span class="nav-icon"><i class="ph ph-users"></i></span>
+                        Clientes</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Quadras</div>
+                    <a href="courts.html" class="nav-item active"><span class="nav-icon"><i
+                                class="ph ph-tennis-court"></i></span> Quadras</a>
+                    <a href="schedule.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-calendar-check"></i></span> Agendamentos</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Bar / PDV</div>
+                    <a href="bar.html" class="nav-item"><span class="nav-icon"><i class="ph ph-beer-stein"></i></span>
+                        PDV / Caixa</a>
+                    <a href="tabs.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-clipboard-text"></i></span> Comandas</a>
+                    <a href="cash_register.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-cash-register"></i></span> Caixa Diário</a>
+                    <a href="sales_history.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-receipt"></i></span> Histórico</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Estoque</div>
+                    <a href="inventory.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-package"></i></span> Estoque</a>
+                    <a href="purchase_orders.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-truck"></i></span> Pedidos</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Relatórios</div>
+                    <a href="reports.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-chart-pie-slice"></i></span> Relatórios</a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">Arena Beach v2.0</div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+        <div class="main">
+            <header class="topbar">
+                <div class="flex items-center gap-3">
+                    <button class="mobile-toggle" onclick="openSidebar()">☰</button>
+                    <h1>Quadras</h1>
+                </div>
+                <div class="topbar-right">
+                    <a href="schedule.html" class="btn btn-ghost btn-sm"><i class="ph ph-calendar"></i> Ver
+                        Agendamentos</a>
+                    <button class="btn btn-primary" onclick="openModal()"><i class="ph ph-plus-circle"></i> Nova
+                        Quadra</button>
+                </div>
+            </header>
+            <div class="page-content">
+                <div id="courtsGrid" class="grid-3 mb-6"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" style="max-width:440px">
+            <div class="modal-header"><span class="modal-title" id="modalTitle">Nova Quadra</span><button
+                    class="modal-close" onclick="closeModal()">✕</button></div>
+            <form onsubmit="saveCourt(event)">
+                <input type="hidden" id="courtId">
+                <div class="form-group"><label class="form-label">Nome *</label><input id="cName" class="form-control"
+                        required placeholder="Ex: Quadra 1 – Premium"></div>
+                <div class="form-group"><label class="form-label">Modalidade *</label>
+                    <select id="cSport" class="form-control" required>
+                        <option value="">Selecionar...</option>
+                        <option>Beach Tennis</option>
+                        <option>Futvolei</option>
+                        <option>Volei de Praia</option>
+                        <option>Outros</option>
+                    </select>
+                </div>
+                <div class="form-group"><label class="flex items-center gap-2" style="cursor:pointer"><input
+                            type="checkbox" id="cActive" checked><span class="form-label"
+                            style="margin:0">Ativa</span></label></div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <script>
+        const API = '';
+        let courts = [];
+        const sportIcons = { 'Beach Tennis': '<i class="ph ph-tennis-ball"></i>', 'Futvolei': '<i class="ph ph-soccer-ball"></i>', 'Volei de Praia': '<i class="ph ph-volleyball"></i>', 'Outros': '<i class="ph ph-layout"></i>' };
+        const sportColors = { 'Beach Tennis': 'blue', 'Futvolei': 'orange', 'Volei de Praia': 'green', 'Outros': 'gray' };
+        function toast(msg, type = 'info') { const c = document.getElementById('toastContainer'); const t = document.createElement('div'); t.className = `toast ${type}`; t.innerHTML = `<i class="ph-bold ${type === 'success' ? 'ph-check-circle' : type === 'error' ? 'ph-x-circle' : 'ph-info'}"></i><span>${msg}</span>`; c.appendChild(t); setTimeout(() => t.remove(), 4000); }
+        function openSidebar() { document.getElementById('sidebar').classList.add('mobile-open'); document.getElementById('sidebarOverlay').classList.add('visible'); }
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('sidebarOverlay').classList.remove('visible'); }
+
+        async function loadCourts() {
+            try {
+                courts = await fetch(`${API}/api/courts`).then(r => r.json());
+                renderCourts();
+            } catch (e) { toast('Erro ao carregar quadras', 'error'); }
+        }
+
+        function renderCourts() {
+            const grid = document.getElementById('courtsGrid');
+            if (!courts.length) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted)">Nenhuma quadra cadastrada</div>'; return; }
+            grid.innerHTML = courts.map(c => `
+    <div class="card" style="position:relative">
+      <div style="font-size:48px;text-align:center;margin-bottom:12px;line-height:1">${sportIcons[c.sportType] || '🏟️'}</div>
+      <div style="text-align:center;margin-bottom:10px">
+        <div style="font-size:16px;font-weight:700;color:var(--text-primary)">${c.name}</div>
+        <span class="badge badge-${sportColors[c.sportType] || 'gray'}" style="margin-top:6px">${c.sportType}</span>
+      </div>
+      <div class="flex justify-between items-center" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border-light)">
+        <span class="badge ${c.isActive ? 'badge-green' : 'badge-gray'}">${c.isActive ? '● Ativa' : '○ Inativa'}</span>
+        <div class="flex gap-2">
+          <button class="btn btn-ghost btn-sm" onclick="openModal(${c.id})"><i class="ph ph-pencil"></i></button>
+          <a href="schedule.html?court=${c.id}" class="btn btn-ghost btn-sm"><i class="ph ph-calendar"></i></a>
+        </div>
+      </div>
+    </div>`).join('');
+        }
+
+        function openModal(id = null) {
+            document.getElementById('courtId').value = id || '';
+            document.getElementById('modalTitle').textContent = id ? 'Editar Quadra' : 'Nova Quadra';
+            document.getElementById('cName').value = ''; document.getElementById('cSport').value = ''; document.getElementById('cActive').checked = true;
+            if (id) { const c = courts.find(x => x.id === id); if (c) { document.getElementById('cName').value = c.name; document.getElementById('cSport').value = c.sportType; document.getElementById('cActive').checked = c.isActive; } }
+            document.getElementById('modalOverlay').classList.add('open');
+        }
+        function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+
+        async function saveCourt(e) {
+            e.preventDefault();
+            const id = document.getElementById('courtId').value;
+            const body = { name: document.getElementById('cName').value, sportType: document.getElementById('cSport').value, isActive: document.getElementById('cActive').checked };
+            if (id) body.id = parseInt(id);
+            try {
+                const res = await fetch(`${API}/api/courts${id ? '/' + id : ''}`, { method: id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                if (!res.ok) throw new Error(await res.text());
+                toast(id ? 'Quadra atualizada!' : 'Quadra criada!', 'success');
+                closeModal(); loadCourts();
+            } catch (err) { toast('Erro: ' + err.message, 'error'); }
+        }
+        loadCourts();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arena Beach – Relatórios</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="../css/modern.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon"><i class="ph-fill ph-beach-ball"></i></div>
+                <div>
+                    <h2>Arena Beach</h2><span>Gestão Esportiva</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-label">Principal</div>
+                    <a href="index.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-chart-line-up"></i></span> Dashboard</a>
+                    <a href="students.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-graduation-cap"></i></span> Alunos</a>
+                    <a href="customers.html" class="nav-item"><span class="nav-icon"><i class="ph ph-users"></i></span>
+                        Clientes</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Quadras</div>
+                    <a href="courts.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-tennis-court"></i></span> Quadras</a>
+                    <a href="schedule.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-calendar-check"></i></span> Agendamentos</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Bar / PDV</div>
+                    <a href="bar.html" class="nav-item"><span class="nav-icon"><i class="ph ph-beer-stein"></i></span>
+                        PDV / Caixa</a>
+                    <a href="tabs.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-clipboard-text"></i></span> Comandas</a>
+                    <a href="cash_register.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-cash-register"></i></span> Caixa Diário</a>
+                    <a href="sales_history.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-receipt"></i></span> Histórico</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Estoque</div>
+                    <a href="inventory.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-package"></i></span> Estoque</a>
+                    <a href="purchase_orders.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-truck"></i></span> Pedidos</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Relatórios</div>
+                    <a href="reports.html" class="nav-item active"><span class="nav-icon"><i
+                                class="ph ph-chart-pie-slice"></i></span> Relatórios</a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">Arena Beach v2.0</div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+        <div class="main">
+            <header class="topbar">
+                <div class="flex items-center gap-3">
+                    <button class="mobile-toggle" onclick="openSidebar()">☰</button>
+                    <h1>Relatórios</h1>
+                </div>
+                <div class="topbar-right">
+                    <button class="btn btn-ghost btn-sm" onclick="exportCSV()"><i class="ph ph-download-simple"></i>
+                        Exportar CSV</button>
+                </div>
+            </header>
+            <div class="page-content">
+
+                <!-- Filter Bar -->
+                <div class="card mb-6">
+                    <div class="filter-bar">
+                        <label class="form-label" style="white-space:nowrap">Período:</label>
+                        <select id="periodSelect" class="form-control" style="width:auto" onchange="loadAll()">
+                            <option value="7">Últimos 7 dias</option>
+                            <option value="30" selected>Últimos 30 dias</option>
+                            <option value="60">Últimos 60 dias</option>
+                            <option value="90">Últimos 90 dias</option>
+                        </select>
+                        <button class="btn btn-primary btn-sm" onclick="loadAll()">Atualizar</button>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="charts-grid mb-6">
+                    <div class="card">
+                        <div class="card-header"><span class="card-title">Vendas por Dia</span><span id="totalPeriod"
+                                style="font-size:13px;font-weight:700;color:var(--accent)"></span></div>
+                        <div class="chart-container"><canvas id="chartDays"></canvas></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><span class="card-title">Por Categoria</span></div>
+                        <div class="chart-container"><canvas id="chartCats"></canvas></div>
+                    </div>
+                </div>
+
+                <div class="grid-2 mb-6">
+                    <!-- Top Products -->
+                    <div class="card">
+                        <div class="card-header"><span class="card-title">Top Produtos (Receita)</span></div>
+                        <div class="chart-container" style="height:240px"><canvas id="chartTopProds"></canvas></div>
+                    </div>
+                    <!-- Inventory Status -->
+                    <div class="card">
+                        <div class="card-header"><span class="card-title">Status do Estoque</span><span
+                                class="badge badge-red" id="lowStockBadge"></span></div>
+                        <div class="table-wrap" style="max-height:240px;overflow-y:auto">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Produto</th>
+                                        <th>Estoque</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="inventoryTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sales by Product Table -->
+                <div class="card">
+                    <div class="card-header"><span class="card-title">Vendas por Produto (período)</span></div>
+                    <div class="table-wrap">
+                        <table id="salesByProductTable">
+                            <thead>
+                                <tr>
+                                    <th>Produto</th>
+                                    <th>Qtd. Vendida</th>
+                                    <th>Receita Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="salesByProdBody">
+                                <tr>
+                                    <td colspan="3" style="text-align:center;padding:20px;color:var(--text-muted)">
+                                        Carregando...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="toast-container" id="toastContainer"></div>
+    <script>
+        const API = '';
+        let chartDaysInstance = null, chartCatsInstance = null, chartTopProdsInstance = null;
+        let salesByProductData = [];
+        const fmt = v => 'R$ ' + parseFloat(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+        function toast(msg, type = 'info') { const c = document.getElementById('toastContainer'); const t = document.createElement('div'); t.className = `toast ${type}`; t.innerHTML = `<i class="ph-bold ${type === 'success' ? 'ph-check-circle' : type === 'error' ? 'ph-x-circle' : 'ph-info'}"></i><span>${msg}</span>`; c.appendChild(t); setTimeout(() => t.remove(), 4000); }
+        function openSidebar() { document.getElementById('sidebar').classList.add('mobile-open'); document.getElementById('sidebarOverlay').classList.add('visible'); }
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('sidebarOverlay').classList.remove('visible'); }
+
+        const gridColor = '#30363d'; const tickColor = '#8b949e';
+        const COLORS = ['#22d3ee', '#34d399', '#fbbf24', '#f87171', '#a78bfa', '#fb7185', '#38bdf8', '#4ade80'];
+
+        function destroyChart(inst) { if (inst) { try { inst.destroy(); } catch (e) { } } }
+
+        async function loadAll() {
+            const days = parseInt(document.getElementById('periodSelect').value) || 30;
+            await Promise.all([loadDayChart(days), loadCatChart(), loadTopProducts(), loadInventory(), loadSalesByProduct(days)]);
+        }
+
+        async function loadDayChart(days) {
+            try {
+                const data = await fetch(`${API}/api/analytics/sales-by-day?days=${days}`).then(r => r.json());
+                const total = data.reduce((s, d) => s + d.total, 0);
+                document.getElementById('totalPeriod').textContent = fmt(total);
+                destroyChart(chartDaysInstance);
+                chartDaysInstance = new Chart(document.getElementById('chartDays'), {
+                    type: 'bar',
+                    data: { labels: data.map(d => d.date.slice(5)), datasets: [{ label: 'Vendas', data: data.map(d => d.total), backgroundColor: 'rgba(34,211,238,0.5)', borderColor: '#22d3ee', borderWidth: 2, borderRadius: 4 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 10 } } }, y: { grid: { color: gridColor }, ticks: { color: tickColor, callback: v => 'R$' + v } } } }
+                });
+            } catch (e) { }
+        }
+
+        async function loadCatChart() {
+            try {
+                const data = await fetch(`${API}/api/analytics/sales-by-category`).then(r => r.json());
+                destroyChart(chartCatsInstance);
+                chartCatsInstance = new Chart(document.getElementById('chartCats'), {
+                    type: 'doughnut',
+                    data: { labels: data.map(d => d.category), datasets: [{ data: data.map(d => d.total), backgroundColor: COLORS, borderColor: '#1e2433', borderWidth: 2 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: tickColor, font: { size: 11 }, padding: 10 } } } }
+                });
+            } catch (e) { }
+        }
+
+        async function loadTopProducts() {
+            try {
+                const data = await fetch(`${API}/api/analytics/top-products?limit=8`).then(r => r.json());
+                destroyChart(chartTopProdsInstance);
+                chartTopProdsInstance = new Chart(document.getElementById('chartTopProds'), {
+                    type: 'bar',
+                    data: { labels: data.map(d => d.productName), datasets: [{ label: 'Receita', data: data.map(d => d.totalRevenue), backgroundColor: COLORS, borderRadius: 4 }] },
+                    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: gridColor }, ticks: { color: tickColor, callback: v => 'R$' + v } }, y: { grid: { color: 'transparent' }, ticks: { color: tickColor, font: { size: 11 } } } } }
+                });
+            } catch (e) { }
+        }
+
+        async function loadInventory() {
+            try {
+                const data = await fetch(`${API}/api/analytics/inventory-summary`).then(r => r.json());
+                const low = data.filter(p => p.isLowStock);
+                document.getElementById('lowStockBadge').textContent = low.length ? `⚠️ ${low.length} crítico(s)` : '';
+                document.getElementById('inventoryTable').innerHTML = data.map(p => `<tr>
+      <td style="font-weight:500;color:var(--text-primary)">${p.name}</td>
+      <td>${p.stock}</td>
+      <td><span class="badge ${p.stock === 0 ? 'badge-red' : p.isLowStock ? 'badge-orange' : 'badge-green'}">${p.stock === 0 ? 'Sem estoque' : p.isLowStock ? 'Baixo' : 'OK'}</span></td>
+    </tr>`).join('');
+            } catch (e) { }
+        }
+
+        async function loadSalesByProduct(days) {
+            try {
+                salesByProductData = await fetch(`${API}/api/analytics/sales-by-product?days=${days}`).then(r => r.json());
+                document.getElementById('salesByProdBody').innerHTML = salesByProductData.map((p, i) => `<tr>
+      <td style="font-weight:600;color:var(--text-primary)">${p.productName}</td>
+      <td>${p.totalQty} un.</td>
+      <td style="font-weight:700;color:var(--green)">${fmt(p.totalRevenue)}</td>
+    </tr>`).join('');
+            } catch (e) { }
+        }
+
+        function exportCSV() {
+            if (!salesByProductData.length) { toast('Carregue os dados primeiro', 'warning'); return; }
+            const rows = [['Produto', 'Qtd. Vendida', 'Receita'], ...salesByProductData.map(p => [p.productName, p.totalQty, p.totalRevenue.toFixed(2)])];
+            const csv = rows.map(r => r.join(';')).join('\n');
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'relatorio_produtos.csv'; a.click();
+            toast('Exportado com sucesso!', 'success');
+        }
+
+        loadAll();
+    </script>
+</body>
+
+</html>

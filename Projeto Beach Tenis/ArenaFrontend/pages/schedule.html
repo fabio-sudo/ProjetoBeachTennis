@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arena Beach – Agendamentos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="../css/modern.css">
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon"><i class="ph-fill ph-beach-ball"></i></div>
+                <div>
+                    <h2>Arena Beach</h2><span>Gestão Esportiva</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-label">Principal</div>
+                    <a href="index.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-chart-line-up"></i></span> Dashboard</a>
+                    <a href="students.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-graduation-cap"></i></span> Alunos</a>
+                    <a href="customers.html" class="nav-item"><span class="nav-icon"><i class="ph ph-users"></i></span>
+                        Clientes</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Quadras</div>
+                    <a href="courts.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-tennis-court"></i></span> Quadras</a>
+                    <a href="schedule.html" class="nav-item active"><span class="nav-icon"><i
+                                class="ph ph-calendar-check"></i></span> Agendamentos</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Bar / PDV</div>
+                    <a href="bar.html" class="nav-item"><span class="nav-icon"><i class="ph ph-beer-stein"></i></span>
+                        PDV / Caixa</a>
+                    <a href="tabs.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-clipboard-text"></i></span> Comandas</a>
+                    <a href="cash_register.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-cash-register"></i></span> Caixa Diário</a>
+                    <a href="sales_history.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-receipt"></i></span> Histórico</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Estoque</div>
+                    <a href="inventory.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-package"></i></span> Estoque</a>
+                    <a href="purchase_orders.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-truck"></i></span> Pedidos</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Relatórios</div>
+                    <a href="reports.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-chart-pie-slice"></i></span> Relatórios</a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">Arena Beach v2.0</div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+        <div class="main">
+            <header class="topbar">
+                <div class="flex items-center gap-3">
+                    <button class="mobile-toggle" onclick="openSidebar()">☰</button>
+                    <h1>Agendamentos</h1>
+                </div>
+                <div class="topbar-right">
+                    <button class="btn btn-primary" onclick="openModal()">+ Nova Reserva</button>
+                </div>
+            </header>
+            <div class="page-content">
+                <div class="card mb-4">
+                    <div class="filter-bar">
+                        <label class="form-label" style="white-space:nowrap">Data:</label>
+                        <input type="date" id="filterDate" class="form-control" style="width:auto"
+                            onchange="loadReservations()">
+                        <select id="filterCourt" class="form-control" style="width:auto" onchange="loadReservations()">
+                            <option value="">Todas as Quadras</option>
+                        </select>
+                        <button class="btn btn-ghost btn-sm" onclick="goToday()">Hoje</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title" id="scheduleTitle">Agendamentos</span>
+                        <span class="badge badge-blue" id="resCount">0 reservas</span>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Quadra</th>
+                                    <th>Cliente</th>
+                                    <th>Início</th>
+                                    <th>Fim</th>
+                                    <th>Preço</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reservationsTable">
+                                <tr>
+                                    <td colspan="6">
+                                        <div class="loader">
+                                            <div class="spinner"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reservation Modal -->
+    <div class="modal-overlay" id="resModal">
+        <div class="modal">
+            <div class="modal-header"><span class="modal-title" id="resModalTitle">Nova Reserva</span><button
+                    class="modal-close" onclick="closeModal()">✕</button></div>
+            <form onsubmit="saveReservation(event)">
+                <input type="hidden" id="resId">
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Quadra *</label>
+                        <select id="rCourt" class="form-control" required>
+                            <option value="">Selecionar...</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label class="form-label">Data *</label><input id="rDate" type="date"
+                            class="form-control" required></div>
+                </div>
+                <div class="form-group"><label class="form-label">Nome do Cliente *</label><input id="rCustomer"
+                        class="form-control" required placeholder="Nome completo"></div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Início *</label><input id="rStart" type="time"
+                            class="form-control" required></div>
+                    <div class="form-group"><label class="form-label">Fim *</label><input id="rEnd" type="time"
+                            class="form-control" required></div>
+                </div>
+                <div class="form-group"><label class="form-label">Preço (R$) *</label><input id="rPrice" type="number"
+                        step="0.01" class="form-control" required placeholder="0,00"></div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Confirmar Reserva</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirm Delete -->
+    <div class="modal-overlay" id="confirmOverlay">
+        <div class="modal" style="max-width:360px">
+            <div class="modal-header"><span class="modal-title">Cancelar Reserva?</span><button class="modal-close"
+                    onclick="document.getElementById('confirmOverlay').classList.remove('open')">✕</button></div>
+            <p style="color:var(--text-secondary);margin-bottom:20px">Deseja cancelar esta reserva? A ação não pode ser
+                desfeita.</p>
+            <div class="form-actions"><button class="btn btn-ghost"
+                    onclick="document.getElementById('confirmOverlay').classList.remove('open')">Não</button><button
+                    class="btn btn-danger" id="confirmDelBtn">Sim, Cancelar</button></div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <script>
+        const API = '';
+        let courts = [], reservations = [];
+        const fmt = v => 'R$ ' + parseFloat(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+        function toast(msg, type = 'info') { const c = document.getElementById('toastContainer'); const t = document.createElement('div'); t.className = `toast ${type}`; t.innerHTML = `<i class="ph-bold ${type === 'success' ? 'ph-check-circle' : type === 'error' ? 'ph-x-circle' : 'ph-info'}"></i><span>${msg}</span>`; c.appendChild(t); setTimeout(() => t.remove(), 4000); }
+        function openSidebar() { document.getElementById('sidebar').classList.add('mobile-open'); document.getElementById('sidebarOverlay').classList.add('visible'); }
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('sidebarOverlay').classList.remove('visible'); }
+
+        function goToday() { document.getElementById('filterDate').value = new Date().toISOString().slice(0, 10); loadReservations(); }
+
+        async function init() {
+            try {
+                courts = await fetch(`${API}/api/courts`).then(r => r.json());
+                const courtSel = document.getElementById('filterCourt');
+                courtSel.innerHTML = '<option value="">Todas as Quadras</option>' + courts.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                // Pre-fill URL param
+                const params = new URLSearchParams(location.search);
+                if (params.get('court')) courtSel.value = params.get('court');
+            } catch (e) { }
+            goToday();
+        }
+
+        async function loadReservations() {
+            const date = document.getElementById('filterDate').value;
+            const courtId = document.getElementById('filterCourt').value;
+            document.getElementById('scheduleTitle').textContent = date ? `Reservas – ${new Date(date + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })}` : 'Reservas';
+            try {
+                const qs = new URLSearchParams();
+                if (date) qs.set('date', date);
+                if (courtId) qs.set('courtId', courtId);
+                reservations = await fetch(`${API}/api/reservations?${qs}`).then(r => r.json());
+                renderReservations();
+            } catch (e) { toast('Erro ao carregar reservas', 'error'); }
+        }
+
+        const sportColors = { 'Beach Tennis': 'blue', 'Futvolei': 'orange', 'Volei de Praia': 'green' };
+        function renderReservations() {
+            document.getElementById('resCount').textContent = `${reservations.length} reserva(s)`;
+            const tbody = document.getElementById('reservationsTable');
+            if (!reservations.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted)">Nenhuma reserva encontrada</td></tr>'; return; }
+            const sorted = [...reservations].sort((a, b) => a.startTime.localeCompare(b.startTime));
+            tbody.innerHTML = sorted.map(r => {
+                const court = courts.find(c => c.id === r.courtId);
+                return `<tr>
+      <td><span class="badge badge-${sportColors[court?.sportType] || 'blue'}">${court?.name || r.courtId}</span></td>
+      <td style="font-weight:600;color:var(--text-primary)">${r.customerName}</td>
+      <td>${r.startTime?.slice(0, 5)}</td>
+      <td>${r.endTime?.slice(0, 5)}</td>
+      <td style="color:var(--green);font-weight:600">${fmt(r.price)}</td>
+      <td class="flex gap-2">
+        <button class="btn btn-ghost btn-sm" onclick="openModal(${r.id})"><i class="ph ph-pencil"></i></button>
+        <button class="btn btn-danger btn-sm" onclick="confirmDelete(${r.id})"><i class="ph ph-trash"></i></button>
+      </td>
+    </tr>`;
+            }).join('');
+        }
+
+        function openModal(id = null) {
+            document.getElementById('resId').value = id || '';
+            document.getElementById('resModalTitle').textContent = id ? 'Editar Reserva' : 'Nova Reserva';
+            const rCourt = document.getElementById('rCourt');
+            rCourt.innerHTML = '<option value="">Selecionar...</option>' + courts.map(c => `<option value="${c.id}">${c.name} (${c.sportType})</option>`).join('');
+            const today = document.getElementById('filterDate').value || new Date().toISOString().slice(0, 10);
+            document.getElementById('rDate').value = today;
+            document.getElementById('rCourt').value = ''; document.getElementById('rCustomer').value = ''; document.getElementById('rStart').value = ''; document.getElementById('rEnd').value = ''; document.getElementById('rPrice').value = '';
+            if (id) {
+                const r = reservations.find(x => x.id === id);
+                if (r) {
+                    document.getElementById('rCourt').value = r.courtId;
+                    document.getElementById('rDate').value = new Date(r.reservationDate).toISOString().slice(0, 10);
+                    document.getElementById('rCustomer').value = r.customerName;
+                    document.getElementById('rStart').value = r.startTime?.slice(0, 5);
+                    document.getElementById('rEnd').value = r.endTime?.slice(0, 5);
+                    document.getElementById('rPrice').value = r.price;
+                }
+            }
+            document.getElementById('resModal').classList.add('open');
+        }
+        function closeModal() { document.getElementById('resModal').classList.remove('open'); }
+
+        async function saveReservation(e) {
+            e.preventDefault();
+            const id = document.getElementById('resId').value;
+            const body = { courtId: parseInt(document.getElementById('rCourt').value), customerName: document.getElementById('rCustomer').value, reservationDate: document.getElementById('rDate').value, startTime: document.getElementById('rStart').value + ':00', endTime: document.getElementById('rEnd').value + ':00', price: parseFloat(document.getElementById('rPrice').value) };
+            if (id) body.id = parseInt(id);
+            try {
+                const res = await fetch(`${API}/api/reservations${id ? '/' + id : ''}`, { method: id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                if (!res.ok) throw new Error(await res.text());
+                toast(id ? 'Reserva atualizada!' : 'Reserva criada!', 'success');
+                closeModal(); loadReservations();
+            } catch (err) { toast('Erro: ' + err.message, 'error'); }
+        }
+
+        let deleteId = null;
+        function confirmDelete(id) { deleteId = id; document.getElementById('confirmDelBtn').onclick = doDelete; document.getElementById('confirmOverlay').classList.add('open'); }
+        async function doDelete() {
+            try { await fetch(`${API}/api/reservations/${deleteId}`, { method: 'DELETE' }); toast('Reserva cancelada.', 'success'); document.getElementById('confirmOverlay').classList.remove('open'); loadReservations(); }
+            catch (e) { toast('Erro ao cancelar', 'error'); }
+        }
+        init();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arena Beach – Caixa Diário</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="../css/modern.css">
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon"><i class="ph-fill ph-beach-ball"></i></div>
+                <div>
+                    <h2>Arena Beach</h2><span>Gestão Esportiva</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-label">Principal</div>
+                    <a href="index.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-chart-line-up"></i></span> Dashboard</a>
+                    <a href="students.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-graduation-cap"></i></span> Alunos</a>
+                    <a href="customers.html" class="nav-item"><span class="nav-icon"><i class="ph ph-users"></i></span>
+                        Clientes</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Quadras</div>
+                    <a href="courts.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-tennis-court"></i></span> Quadras</a>
+                    <a href="schedule.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-calendar-check"></i></span> Agendamentos</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Bar / PDV</div>
+                    <a href="bar.html" class="nav-item"><span class="nav-icon"><i class="ph ph-beer-stein"></i></span>
+                        PDV / Caixa</a>
+                    <a href="tabs.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-clipboard-text"></i></span> Comandas</a>
+                    <a href="cash_register.html" class="nav-item active"><span class="nav-icon"><i
+                                class="ph ph-cash-register"></i></span> Caixa Diário</a>
+                    <a href="sales_history.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-receipt"></i></span> Histórico</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Estoque</div>
+                    <a href="inventory.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-package"></i></span> Estoque</a>
+                    <a href="purchase_orders.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-truck"></i></span> Pedidos de Compra</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Relatórios</div>
+                    <a href="reports.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-chart-pie-slice"></i></span> Relatórios</a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">Arena Beach v2.0</div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+        <div class="main">
+            <header class="topbar">
+                <div class="flex items-center gap-3">
+                    <button class="mobile-toggle" onclick="openSidebar()">☰</button>
+                    <h1>Caixa Diário</h1>
+                </div>
+            </header>
+            <div class="page-content">
+                <!-- Status Banner -->
+                <div id="crBanner" class="cr-status-banner closed">
+                    <span style="font-size:24px" id="crBannerIcon"><i class="ph ph-lock"></i></span>
+                    <div style="flex:1">
+                        <div style="font-weight:700" id="crBannerTitle">Caixa Fechado</div>
+                        <div style="font-size:12px;color:var(--text-secondary)" id="crBannerSub">Abra o caixa para
+                            registrar movimentações</div>
+                    </div>
+                    <div id="crActions">
+                        <button class="btn btn-success" onclick="openOpenModal()">Abrir Caixa</button>
+                    </div>
+                </div>
+
+                <!-- KPIs when open -->
+                <div id="crKpis" style="display:none" class="kpi-grid mb-6">
+                    <div class="kpi-card">
+                        <div class="kpi-icon green"><i class="ph ph-trend-up"></i></div>
+                        <div class="kpi-label">Vendas</div>
+                        <div class="kpi-value" id="crSales">R$ 0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon red"><i class="ph ph-trend-down"></i></div>
+                        <div class="kpi-label">Despesas</div>
+                        <div class="kpi-value" id="crExpenses">R$ 0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon blue"><i class="ph ph-arrows-left-right"></i></div>
+                        <div class="kpi-label">Ajustes</div>
+                        <div class="kpi-value" id="crAdj">R$ 0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon orange"><i class="ph ph-bank"></i></div>
+                        <div class="kpi-label">Saldo Esperado</div>
+                        <div class="kpi-value" id="crBalance">R$ 0</div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <!-- Add Transaction -->
+                    <div class="card" id="addTxCard">
+                        <div class="card-header"><span class="card-title">Adicionar Transação Manual</span></div>
+                        <div class="form-group"><label class="form-label">Tipo</label>
+                            <select id="txType" class="form-control">
+                                <option value="Expense">Despesa</option>
+                                <option value="Adjustment">Ajuste</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label class="form-label">Valor (R$)</label><input id="txAmount"
+                                type="number" step="0.01" class="form-control" placeholder="0,00"></div>
+                        <div class="form-group"><label class="form-label">Descrição</label><input id="txDesc"
+                                class="form-control" placeholder="Ex: Compra de gelo, ajuste de troco..."></div>
+                        <button class="btn btn-primary" onclick="addTransaction()" id="addTxBtn"
+                            disabled>Registrar</button>
+                    </div>
+
+                    <!-- Transaction List -->
+                    <div class="card">
+                        <div class="card-header"><span class="card-title">Movimentações do Dia</span></div>
+                        <div id="txList" style="max-height:360px;overflow-y:auto"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Open Modal -->
+    <div class="modal-overlay" id="openCrModal">
+        <div class="modal" style="max-width:360px">
+            <div class="modal-header"><span class="modal-title">Abrir Caixa</span><button class="modal-close"
+                    onclick="document.getElementById('openCrModal').classList.remove('open')">✕</button></div>
+            <div class="form-group"><label class="form-label">Saldo de Abertura (R$)</label><input id="openingAmount"
+                    type="number" step="0.01" class="form-control" placeholder="0,00" value="0"></div>
+            <div class="form-actions">
+                <button class="btn btn-ghost"
+                    onclick="document.getElementById('openCrModal').classList.remove('open')">Cancelar</button>
+                <button class="btn btn-success" onclick="openCashRegister()">Abrir Caixa</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Close Modal -->
+    <div class="modal-overlay" id="closeCrModal">
+        <div class="modal" style="max-width:360px">
+            <div class="modal-header"><span class="modal-title">Fechar Caixa</span><button class="modal-close"
+                    onclick="document.getElementById('closeCrModal').classList.remove('open')">✕</button></div>
+            <div style="margin-bottom:16px;padding:12px;background:var(--bg-tertiary);border-radius:var(--radius-sm)">
+                <div class="flex justify-between"><span style="color:var(--text-muted)">Saldo esperado:</span><span
+                        style="font-weight:700;color:var(--accent)" id="closeExpected">R$ 0</span></div>
+            </div>
+            <div class="form-group"><label class="form-label">Saldo Real Contado (R$)</label><input id="closingAmount"
+                    type="number" step="0.01" class="form-control" placeholder="0,00"></div>
+            <div class="form-actions">
+                <button class="btn btn-ghost"
+                    onclick="document.getElementById('closeCrModal').classList.remove('open')">Cancelar</button>
+                <button class="btn btn-danger" onclick="closeCashRegister()">🔒 Fechar Caixa</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <script>
+        const API = '';
+        let currentRegister = null;
+        const fmt = v => 'R$ ' + parseFloat(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+        function toast(msg, type = 'info') { const c = document.getElementById('toastContainer'); const t = document.createElement('div'); t.className = `toast ${type}`; t.innerHTML = `<i class="ph-bold ${type === 'success' ? 'ph-check-circle' : type === 'error' ? 'ph-x-circle' : 'ph-info'}"></i><span>${msg}</span>`; c.appendChild(t); setTimeout(() => t.remove(), 4000); }
+        function openSidebar() { document.getElementById('sidebar').classList.add('mobile-open'); document.getElementById('sidebarOverlay').classList.add('visible'); }
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('sidebarOverlay').classList.remove('visible'); }
+
+        async function load() {
+            try {
+                currentRegister = await fetch(`${API}/api/cashregister/current`).then(r => r.json());
+                if (currentRegister) {
+                    // Open
+                    document.getElementById('crBanner').className = 'cr-status-banner open';
+                    document.getElementById('crBannerIcon').innerHTML = '<i class="ph ph-lock-open"></i>';
+                    document.getElementById('crBannerTitle').textContent = 'Caixa Aberto';
+                    document.getElementById('crBannerSub').textContent = `Aberto às ${new Date(currentRegister.openedAt).toLocaleTimeString('pt-BR')} · Fundo: ${fmt(currentRegister.openingAmount)}`;
+                    document.getElementById('crActions').innerHTML = `<button class="btn btn-danger" onclick="openCloseModal()">🔒 Fechar Caixa</button>`;
+                    document.getElementById('crKpis').style.display = '';
+                    document.getElementById('crSales').textContent = fmt(currentRegister.salesTotal);
+                    document.getElementById('crExpenses').textContent = fmt(currentRegister.expensesTotal);
+                    document.getElementById('crAdj').textContent = fmt(currentRegister.adjustmentsTotal);
+                    document.getElementById('crBalance').textContent = fmt(currentRegister.expectedBalance);
+                    document.getElementById('addTxBtn').disabled = false;
+                    // Transactions
+                    const txs = currentRegister.transactions || [];
+                    const txDiv = document.getElementById('txList');
+                    if (!txs.length) { txDiv.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted)">Nenhuma movimentação</div>'; }
+                    else txDiv.innerHTML = txs.map(t => `
+        <div style="padding:10px 14px;border-bottom:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:center">
+          <div><span class="badge ${t.type === 'Sale' ? 'badge-green' : t.type === 'Expense' ? 'badge-red' : 'badge-blue'}">${t.type === 'Sale' ? 'Venda' : t.type === 'Expense' ? 'Despesa' : 'Ajuste'}</span>
+            <span style="margin-left:8px;font-size:12px;color:var(--text-muted)">${t.description || ''}</span>
+          </div>
+          <span style="font-weight:700;color:${t.type === 'Expense' ? 'var(--red)' : 'var(--green)'}">${t.type === 'Expense' ? '–' : '+'} ${fmt(t.amount)}</span>
+        </div>`).join('');
+                } else {
+                    document.getElementById('crBanner').className = 'cr-status-banner closed';
+                    document.getElementById('crBannerIcon').innerHTML = '<i class="ph ph-lock"></i>';
+                    document.getElementById('crBannerTitle').textContent = 'Caixa Fechado';
+                    document.getElementById('crBannerSub').textContent = 'Nenhum caixa aberto no momento';
+                    document.getElementById('crActions').innerHTML = `<button class="btn btn-success" onclick="openOpenModal()">Abrir Caixa</button>`;
+                    document.getElementById('crKpis').style.display = 'none';
+                    document.getElementById('addTxBtn').disabled = true;
+                    document.getElementById('txList').innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted)">Abra o caixa para ver movimentações</div>';
+                }
+            } catch (e) { toast('Erro ao carregar caixa', 'error'); }
+        }
+
+        function openOpenModal() { document.getElementById('openCrModal').classList.add('open'); }
+        function openCloseModal() {
+            document.getElementById('closeExpected').textContent = fmt(currentRegister?.expectedBalance || 0);
+            document.getElementById('closeCrModal').classList.add('open');
+        }
+
+        async function openCashRegister() {
+            const amt = parseFloat(document.getElementById('openingAmount').value || 0);
+            try {
+                const res = await fetch(`${API}/api/cashregister/open`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ openingAmount: amt }) });
+                if (!res.ok) throw new Error(await res.text());
+                toast('Caixa aberto!', 'success');
+                document.getElementById('openCrModal').classList.remove('open');
+                load();
+            } catch (e) { toast('Erro: ' + e.message, 'error'); }
+        }
+
+        async function closeCashRegister() {
+            const amt = parseFloat(document.getElementById('closingAmount').value || 0);
+            try {
+                const res = await fetch(`${API}/api/cashregister/close`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ closingAmount: amt }) });
+                if (!res.ok) throw new Error(await res.text());
+                toast('Caixa fechado com sucesso!', 'success');
+                document.getElementById('closeCrModal').classList.remove('open');
+                load();
+            } catch (e) { toast('Erro: ' + e.message, 'error'); }
+        }
+
+        async function addTransaction() {
+            const type = document.getElementById('txType').value;
+            const amount = parseFloat(document.getElementById('txAmount').value || 0);
+            const desc = document.getElementById('txDesc').value;
+            if (!amount || amount <= 0) { toast('Informe um valor válido', 'warning'); return; }
+            try {
+                const res = await fetch(`${API}/api/cashregister/transactions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type, amount, description: desc }) });
+                if (!res.ok) throw new Error(await res.text());
+                toast('Transação registrada!', 'success');
+                document.getElementById('txAmount').value = ''; document.getElementById('txDesc').value = '';
+                load();
+            } catch (e) { toast('Erro: ' + e.message, 'error'); }
+        }
+
+        load();
+    </script>
+</body>
+
+</html>

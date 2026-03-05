@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arena Beach – Alunos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="../css/modern.css">
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon"><i class="ph-fill ph-beach-ball"></i></div>
+                <div>
+                    <h2>Arena Beach</h2><span>Gestão Esportiva</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-label">Principal</div>
+                    <a href="index.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-chart-line-up"></i></span> Dashboard</a>
+                    <a href="students.html" class="nav-item active"><span class="nav-icon"><i
+                                class="ph ph-graduation-cap"></i></span> Alunos</a>
+                    <a href="customers.html" class="nav-item"><span class="nav-icon"><i class="ph ph-users"></i></span>
+                        Clientes</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Quadras</div>
+                    <a href="courts.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-tennis-court"></i></span> Quadras</a>
+                    <a href="schedule.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-calendar-check"></i></span> Agendamentos</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Bar / PDV</div>
+                    <a href="bar.html" class="nav-item"><span class="nav-icon"><i class="ph ph-beer-stein"></i></span>
+                        PDV / Caixa</a>
+                    <a href="tabs.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-clipboard-text"></i></span> Comandas</a>
+                    <a href="cash_register.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-cash-register"></i></span> Caixa Diário</a>
+                    <a href="sales_history.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-receipt"></i></span> Histórico</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Estoque</div>
+                    <a href="inventory.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-package"></i></span> Estoque</a>
+                    <a href="purchase_orders.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-truck"></i></span> Pedidos de Compra</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Relatórios</div>
+                    <a href="reports.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-chart-pie-slice"></i></span> Relatórios</a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">Arena Beach v2.0</div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+        <div class="main">
+            <header class="topbar">
+                <div class="flex items-center gap-3">
+                    <button class="mobile-toggle" onclick="openSidebar()">☰</button>
+                    <h1>Alunos</h1>
+                </div>
+            </header>
+            <div class="page-content">
+                <div class="page-header">
+                    <div>
+                        <div class="page-title">Gerenciar Alunos</div>
+                        <div class="page-subtitle" id="totalCount">Carregando...</div>
+                    </div>
+                    <button class="btn btn-primary" onclick="openModal()">+ Novo Aluno</button>
+                </div>
+
+                <div class="card">
+                    <div class="filter-bar">
+                        <input type="text" id="searchInput" class="search-input"
+                            placeholder="Buscar aluno por nome ou e-mail..." oninput="filterStudents()">
+                        <select id="planFilter" class="form-control" style="width:auto" onchange="filterStudents()">
+                            <option value="">Todos os Planos</option>
+                            <option>Basic</option>
+                            <option>Pro</option>
+                            <option>VIP</option>
+                        </select>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Aluno</th>
+                                    <th>Contato</th>
+                                    <th>Plano</th>
+                                    <th>Início</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentsTable">
+                                <tr>
+                                    <td colspan="5">
+                                        <div class="loader">
+                                            <div class="spinner"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title" id="modalTitle">Novo Aluno</span>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <form id="studentForm" onsubmit="saveStudent(event)">
+                <input type="hidden" id="studentId">
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Nome Completo *</label><input id="sName"
+                            class="form-control" required placeholder="João Silva"></div>
+                    <div class="form-group"><label class="form-label">Telefone *</label><input id="sPhone"
+                            class="form-control" required placeholder="(11) 99999-9999"></div>
+                </div>
+                <div class="form-group"><label class="form-label">E-mail *</label><input id="sEmail" type="email"
+                        class="form-control" required placeholder="joao@email.com"></div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Plano *</label>
+                        <select id="sPlan" class="form-control" required>
+                            <option value="">Selecionar...</option>
+                            <option>Basic</option>
+                            <option>Pro</option>
+                            <option>VIP</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label class="form-label">Data de Início *</label><input id="sStart"
+                            type="date" class="form-control" required></div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="saveBtn">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div class="modal-overlay" id="confirmOverlay">
+        <div class="modal" style="max-width:380px">
+            <div class="modal-header"><span class="modal-title">Confirmar Exclusão</span><button class="modal-close"
+                    onclick="closeConfirm()">✕</button></div>
+            <p style="color:var(--text-secondary);margin-bottom:20px">Deseja realmente excluir este aluno? Esta ação não
+                pode ser desfeita.</p>
+            <div class="form-actions"><button class="btn btn-ghost" onclick="closeConfirm()">Cancelar</button><button
+                    class="btn btn-danger" id="confirmDeleteBtn">Excluir</button></div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <script>
+        const API = '';
+        let students = [], editingId = null;
+        const planColors = { Basic: 'blue', Pro: 'orange', VIP: 'purple' };
+
+        function toast(msg, type = 'info') {
+            const c = document.getElementById('toastContainer');
+            const t = document.createElement('div'); t.className = `toast ${type}`;
+            t.innerHTML = `<i class="ph-bold ${type === 'success' ? 'ph-check-circle' : type === 'error' ? 'ph-x-circle' : 'ph-info'}"></i><span>${msg}</span>`;
+            c.appendChild(t); setTimeout(() => t.remove(), 4000);
+        }
+        function openSidebar() { document.getElementById('sidebar').classList.add('mobile-open'); document.getElementById('sidebarOverlay').classList.add('visible'); }
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('sidebarOverlay').classList.remove('visible'); }
+
+        function openModal(id = null) {
+            editingId = id;
+            document.getElementById('modalTitle').textContent = id ? 'Editar Aluno' : 'Novo Aluno';
+            document.getElementById('studentForm').reset();
+            document.getElementById('studentId').value = '';
+            if (id) {
+                const s = students.find(x => x.id === id);
+                if (s) {
+                    document.getElementById('studentId').value = s.id;
+                    document.getElementById('sName').value = s.name;
+                    document.getElementById('sPhone').value = s.phone;
+                    document.getElementById('sEmail').value = s.email;
+                    document.getElementById('sPlan').value = s.planName;
+                    document.getElementById('sStart').value = s.startDate?.slice(0, 10);
+                }
+            }
+            document.getElementById('modalOverlay').classList.add('open');
+        }
+        function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+
+        function closeConfirm() { document.getElementById('confirmOverlay').classList.remove('open'); }
+
+        async function loadStudents() {
+            try {
+                students = await fetch(`${API}/api/students`).then(r => r.json());
+                renderStudents(students);
+            } catch (e) { toast('Erro ao carregar alunos', 'error'); }
+        }
+
+        function initials(name) { return name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase(); }
+
+        function renderStudents(list) {
+            document.getElementById('totalCount').textContent = `${list.length} aluno(s) cadastrado(s)`;
+            const tbody = document.getElementById('studentsTable');
+            if (!list.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-muted)">Nenhum aluno encontrado</td></tr>'; return; }
+            tbody.innerHTML = list.map(s => `
+    <tr>
+      <td><div class="flex items-center gap-3">
+        <div style="width:36px;height:36px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0">${initials(s.name)}</div>
+        <div><div style="font-weight:600;color:var(--text-primary)">${s.name}</div><div style="font-size:11px;color:var(--text-muted)">${s.email}</div></div>
+      </div></td>
+      <td>${s.phone}</td>
+      <td><span class="badge badge-${planColors[s.planName] || 'gray'}">${s.planName}</span></td>
+      <td>${new Date(s.startDate).toLocaleDateString('pt-BR')}</td>
+      <td class="flex gap-2">
+        <button class="btn btn-ghost btn-sm" onclick="openModal(${s.id})"><i class="ph ph-pencil"></i></button>
+        <button class="btn btn-danger btn-sm" onclick="confirmDelete(${s.id})"><i class="ph ph-trash"></i></button>
+      </td>
+    </tr>`).join('');
+        }
+
+        function filterStudents() {
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            const plan = document.getElementById('planFilter').value;
+            renderStudents(students.filter(s =>
+                (!q || s.name.toLowerCase().includes(q) || s.email.toLowerCase().includes(q)) &&
+                (!plan || s.planName === plan)
+            ));
+        }
+
+        async function saveStudent(e) {
+            e.preventDefault();
+            const btn = document.getElementById('saveBtn');
+            btn.disabled = true; btn.textContent = 'Salvando...';
+            const id = document.getElementById('studentId').value;
+            const body = { name: document.getElementById('sName').value, phone: document.getElementById('sPhone').value, email: document.getElementById('sEmail').value, planName: document.getElementById('sPlan').value, startDate: document.getElementById('sStart').value };
+            try {
+                const url = id ? `${API}/api/students/${id}` : `${API}/api/students`;
+                const method = id ? 'PUT' : 'POST';
+                if (id) body.id = parseInt(id);
+                const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                if (!res.ok) throw new Error(await res.text());
+                toast(id ? 'Aluno atualizado!' : 'Aluno cadastrado!', 'success');
+                closeModal(); loadStudents();
+            } catch (err) { toast('Erro: ' + err.message, 'error'); }
+            finally { btn.disabled = false; btn.textContent = 'Salvar'; }
+        }
+
+        let deleteId = null;
+        function confirmDelete(id) {
+            deleteId = id;
+            document.getElementById('confirmDeleteBtn').onclick = doDelete;
+            document.getElementById('confirmOverlay').classList.add('open');
+        }
+        async function doDelete() {
+            try {
+                await fetch(`${API}/api/students/${deleteId}`, { method: 'DELETE' });
+                toast('Aluno excluído.', 'success'); closeConfirm(); loadStudents();
+            } catch (e) { toast('Erro ao excluir', 'error'); }
+        }
+
+        loadStudents();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arena Beach – Histórico de Vendas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="../css/modern.css">
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon"><i class="ph-fill ph-beach-ball"></i></div>
+                <div>
+                    <h2>Arena Beach</h2><span>Gestão Esportiva</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-label">Principal</div>
+                    <a href="index.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-chart-line-up"></i></span> Dashboard</a>
+                    <a href="students.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-graduation-cap"></i></span> Alunos</a>
+                    <a href="customers.html" class="nav-item"><span class="nav-icon"><i class="ph ph-users"></i></span>
+                        Clientes</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Quadras</div>
+                    <a href="courts.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-tennis-court"></i></span> Quadras</a>
+                    <a href="schedule.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-calendar-check"></i></span> Agendamentos</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Bar / PDV</div>
+                    <a href="bar.html" class="nav-item"><span class="nav-icon"><i class="ph ph-beer-stein"></i></span>
+                        PDV / Caixa</a>
+                    <a href="tabs.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-clipboard-text"></i></span> Comandas</a>
+                    <a href="cash_register.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-cash-register"></i></span> Caixa Diário</a>
+                    <a href="sales_history.html" class="nav-item active"><span class="nav-icon"><i
+                                class="ph ph-receipt"></i></span> Histórico</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Estoque</div>
+                    <a href="inventory.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-package"></i></span> Estoque</a>
+                    <a href="purchase_orders.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-truck"></i></span> Pedidos de Compra</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Relatórios</div>
+                    <a href="reports.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-chart-pie-slice"></i></span> Relatórios</a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">Arena Beach v2.0</div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+        <div class="main">
+            <header class="topbar">
+                <div class="flex items-center gap-3"><button class="mobile-toggle" onclick="openSidebar()">☰</button>
+                    <h1>Histórico de Vendas</h1>
+                </div>
+                <div class="topbar-right"><span style="font-weight:700;color:var(--accent)"
+                        id="totalSalesDisplay">Total: R$ 0,00</span></div>
+            </header>
+            <div class="page-content">
+                <div class="card">
+                    <div class="filter-bar">
+                        <input type="date" id="dateFrom" class="form-control" style="width:auto">
+                        <input type="date" id="dateTo" class="form-control" style="width:auto">
+                        <select id="payFilter" class="form-control" style="width:auto">
+                            <option value="">Todos os Pagamentos</option>
+                            <option>Dinheiro</option>
+                            <option>Cartão Crédito</option>
+                            <option>Cartão Débito</option>
+                            <option>PIX</option>
+                        </select>
+                        <button class="btn btn-primary btn-sm" onclick="loadSales()">Filtrar</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Data</th>
+                                    <th>Cliente</th>
+                                    <th>Pagamento</th>
+                                    <th>Total</th>
+                                    <th>Itens</th>
+                                </tr>
+                            </thead>
+                            <tbody id="salesTable">
+                                <tr>
+                                    <td colspan="6">
+                                        <div class="loader">
+                                            <div class="spinner"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sale Detail Modal -->
+    <div class="modal-overlay" id="saleDetailModal">
+        <div class="modal">
+            <div class="modal-header"><span class="modal-title" id="saleDetailTitle">Detalhe da Venda</span><button
+                    class="modal-close"
+                    onclick="document.getElementById('saleDetailModal').classList.remove('open')">✕</button></div>
+            <div id="saleDetailBody"></div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <script>
+        const API = '';
+        let allSales = [];
+        const fmt = v => 'R$ ' + parseFloat(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+        const payBadge = { 'Dinheiro': 'badge-green', 'PIX': 'badge-blue', 'Cartão Crédito': 'badge-purple', 'Cartão Débito': 'badge-orange' };
+        function toast(msg, type = 'info') { const c = document.getElementById('toastContainer'); const t = document.createElement('div'); t.className = `toast ${type}`; t.innerHTML = `<i class="ph-bold ${type === 'success' ? 'ph-check-circle' : type === 'error' ? 'ph-x-circle' : 'ph-info'}"></i><span>${msg}</span>`; c.appendChild(t); setTimeout(() => t.remove(), 4000); }
+        function openSidebar() { document.getElementById('sidebar').classList.add('mobile-open'); document.getElementById('sidebarOverlay').classList.add('visible'); }
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('sidebarOverlay').classList.remove('visible'); }
+
+        // default date range to today
+        const today = new Date().toISOString().slice(0, 10);
+        document.getElementById('dateFrom').value = today;
+        document.getElementById('dateTo').value = today;
+
+        async function loadSales() {
+            try {
+                allSales = await fetch(`${API}/api/sales`).then(r => r.json());
+                const from = document.getElementById('dateFrom').value;
+                const to = document.getElementById('dateTo').value;
+                const pay = document.getElementById('payFilter').value;
+                let filtered = allSales;
+                if (from) filtered = filtered.filter(s => s.saleDate.slice(0, 10) >= from);
+                if (to) filtered = filtered.filter(s => s.saleDate.slice(0, 10) <= to);
+                if (pay) filtered = filtered.filter(s => s.paymentType === pay);
+                const total = filtered.reduce((s, x) => s + x.totalAmount, 0);
+                document.getElementById('totalSalesDisplay').textContent = 'Total: ' + fmt(total);
+                const tbody = document.getElementById('salesTable');
+                if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted)">Nenhuma venda no período</td></tr>'; return; }
+                tbody.innerHTML = filtered.slice().reverse().map(s => `<tr style="cursor:pointer" onclick="showSaleDetail(${s.id})">
+      <td>#${s.id}</td>
+      <td>${new Date(s.saleDate).toLocaleString('pt-BR')}</td>
+      <td>${s.customer?.name || s.student?.name || '–'}</td>
+      <td><span class="badge ${payBadge[s.paymentType] || 'badge-gray'}">${s.paymentType || '–'}</span></td>
+      <td style="font-weight:700;color:var(--green)">${fmt(s.totalAmount)}</td>
+      <td>${s.items?.length || 0} item(s)</td>
+    </tr>`).join('');
+            } catch (e) { toast('Erro ao carregar vendas', 'error'); }
+        }
+
+        function showSaleDetail(id) {
+            const s = allSales.find(x => x.id === id);
+            if (!s) return;
+            document.getElementById('saleDetailTitle').textContent = `Venda #${s.id}`;
+            document.getElementById('saleDetailBody').innerHTML = `
+    <div class="flex justify-between mb-4" style="font-size:13px;color:var(--text-muted)">
+      <span>📅 ${new Date(s.saleDate).toLocaleString('pt-BR')}</span>
+      <span class="badge ${payBadge[s.paymentType] || 'badge-gray'}">${s.paymentType}</span>
+    </div>
+    <div class="table-wrap mb-4">
+      <table><thead><tr><th>Produto</th><th>Qtd</th><th>Unitário</th><th>Subtotal</th></tr></thead>
+        <tbody>${(s.items || []).map(i => `<tr><td>${i.product?.name || '–'}</td><td>${i.quantity}</td><td>${fmt(i.unitPrice)}</td><td style="color:var(--green)">${fmt(i.unitPrice * i.quantity)}</td></tr>`).join('')}</tbody>
+      </table>
+    </div>
+    <div class="flex justify-between" style="border-top:1px solid var(--border);padding-top:14px">
+      <span style="font-weight:700">Total</span><span style="font-size:22px;font-weight:800;color:var(--accent)">${fmt(s.totalAmount)}</span>
+    </div>`;
+            document.getElementById('saleDetailModal').classList.add('open');
+        }
+        loadSales();
+    </script>
+</body>
+
+</html>

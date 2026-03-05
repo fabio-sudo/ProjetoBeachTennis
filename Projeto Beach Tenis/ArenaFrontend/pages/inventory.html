@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arena Beach – Estoque</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="../css/modern.css">
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon"><i class="ph-fill ph-beach-ball"></i></div>
+                <div>
+                    <h2>Arena Beach</h2><span>Gestão Esportiva</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-label">Principal</div>
+                    <a href="index.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-chart-line-up"></i></span> Dashboard</a>
+                    <a href="students.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-graduation-cap"></i></span> Alunos</a>
+                    <a href="customers.html" class="nav-item"><span class="nav-icon"><i class="ph ph-users"></i></span>
+                        Clientes</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Quadras</div>
+                    <a href="courts.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-tennis-court"></i></span> Quadras</a>
+                    <a href="schedule.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-calendar-check"></i></span> Agendamentos</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Bar / PDV</div>
+                    <a href="bar.html" class="nav-item"><span class="nav-icon"><i class="ph ph-beer-stein"></i></span>
+                        PDV / Caixa</a>
+                    <a href="tabs.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-clipboard-text"></i></span> Comandas</a>
+                    <a href="cash_register.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-cash-register"></i></span> Caixa Diário</a>
+                    <a href="sales_history.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-receipt"></i></span> Histórico</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Estoque</div>
+                    <a href="inventory.html" class="nav-item active"><span class="nav-icon"><i
+                                class="ph ph-package"></i></span> Estoque</a>
+                    <a href="purchase_orders.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-truck"></i></span> Pedidos de Compra</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Relatórios</div>
+                    <a href="reports.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-chart-pie-slice"></i></span> Relatórios</a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">Arena Beach v2.0</div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+        <div class="main">
+            <header class="topbar">
+                <div class="flex items-center gap-3">
+                    <button class="mobile-toggle" onclick="openSidebar()">☰</button>
+                    <h1>Estoque de Produtos</h1>
+                </div>
+                <div class="topbar-right">
+                    <a href="purchase_orders.html" class="btn btn-ghost btn-sm"><i class="ph ph-truck"></i> Pedidos de
+                        Compra</a>
+                    <button class="btn btn-primary" onclick="openModal()"><i class="ph ph-plus-circle"></i> Novo
+                        Produto</button>
+                </div>
+            </header>
+            <div class="page-content">
+                <div class="card">
+                    <div class="filter-bar">
+                        <input type="text" id="searchInput" class="search-input" placeholder="Buscar produto..."
+                            oninput="filterProducts()">
+                        <select id="catFilter" class="form-control" style="width:auto" onchange="filterProducts()">
+                            <option value="">Todas as Categorias</option>
+                        </select>
+                        <label class="flex items-center gap-2"
+                            style="font-size:13px;cursor:pointer;color:var(--text-secondary)">
+                            <input type="checkbox" id="lowStockOnly" onchange="filterProducts()"> Estoque baixo
+                        </label>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Produto</th>
+                                    <th>Categoria</th>
+                                    <th>Estoque</th>
+                                    <th>Preço Venda</th>
+                                    <th>Custo</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productsTable">
+                                <tr>
+                                    <td colspan="7">
+                                        <div class="loader">
+                                            <div class="spinner"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Modal -->
+    <div class="modal-overlay" id="productModal">
+        <div class="modal">
+            <div class="modal-header"><span class="modal-title" id="modalTitle">Novo Produto</span><button
+                    class="modal-close" onclick="closeModal()">✕</button></div>
+            <form onsubmit="saveProduct(event)">
+                <input type="hidden" id="productId">
+                <div class="form-group"><label class="form-label">Nome *</label><input id="pName" class="form-control"
+                        required placeholder="Nome do produto"></div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Preço de Venda *</label><input id="pPrice"
+                            type="number" step="0.01" class="form-control" required placeholder="0,00"></div>
+                    <div class="form-group"><label class="form-label">Preço de Custo</label><input id="pCost"
+                            type="number" step="0.01" class="form-control" placeholder="0,00"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Estoque Inicial</label><input id="pStock"
+                            type="number" class="form-control" placeholder="0"></div>
+                    <div class="form-group"><label class="form-label">Categoria</label>
+                        <select id="pCat" class="form-control">
+                            <option value="">Sem categoria</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group"><label class="flex items-center gap-2" style="cursor:pointer"><input
+                            type="checkbox" id="pActive" checked> <span class="form-label"
+                            style="margin:0">Ativo</span></label></div>
+                <div class="form-actions"><button type="button" class="btn btn-ghost"
+                        onclick="closeModal()">Cancelar</button><button type="submit"
+                        class="btn btn-primary">Salvar</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <script>
+        const API = '';
+        let products = [], categories = [];
+        const fmt = v => 'R$ ' + parseFloat(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+        function toast(msg, type = 'info') { const c = document.getElementById('toastContainer'); const t = document.createElement('div'); t.className = `toast ${type}`; t.innerHTML = `<i class="ph-bold ${type === 'success' ? 'ph-check-circle' : type === 'error' ? 'ph-x-circle' : 'ph-info'}"></i><span>${msg}</span>`; c.appendChild(t); setTimeout(() => t.remove(), 4000); }
+        function openSidebar() { document.getElementById('sidebar').classList.add('mobile-open'); document.getElementById('sidebarOverlay').classList.add('visible'); }
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('sidebarOverlay').classList.remove('visible'); }
+
+        async function load() {
+            try {
+                [products, categories] = await Promise.all([fetch(`${API}/api/products`).then(r => r.json()), fetch(`${API}/api/productcategories`).then(r => r.json())]);
+                const catFilter = document.getElementById('catFilter');
+                catFilter.innerHTML = '<option value="">Todas as Categorias</option>' + categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                renderProducts(products);
+            } catch (e) { toast('Erro ao carregar produtos', 'error'); }
+        }
+
+        function filterProducts() {
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            const cat = document.getElementById('catFilter').value;
+            const low = document.getElementById('lowStockOnly').checked;
+            renderProducts(products.filter(p =>
+                (!q || p.name.toLowerCase().includes(q)) &&
+                (!cat || p.categoryId == cat) &&
+                (!low || p.stock < 5)
+            ));
+        }
+
+        function renderProducts(list) {
+            const tbody = document.getElementById('productsTable');
+            if (!list.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted)">Nenhum produto encontrado</td></tr>'; return; }
+            tbody.innerHTML = list.map(p => `<tr>
+    <td style="font-weight:600;color:var(--text-primary)">${p.name}</td>
+    <td>${p.category?.name || '–'}</td>
+    <td><span class="${p.stock === 0 ? 'badge badge-red' : p.stock < 5 ? 'badge badge-orange' : 'badge badge-green'}">${p.stock} un.</span></td>
+    <td>${fmt(p.price)}</td>
+    <td style="color:var(--text-muted)">${p.costPrice > 0 ? fmt(p.costPrice) : '–'}</td>
+    <td><span class="badge ${p.isActive ? 'badge-green' : 'badge-gray'}">${p.isActive ? 'Ativo' : 'Inativo'}</span></td>
+    <td class="flex gap-2">
+      <button class="btn btn-ghost btn-sm" onclick="openModal(${p.id})"><i class="ph ph-pencil"></i></button>
+    </td>
+  </tr>`).join('');
+        }
+
+        function openModal(id = null) {
+            document.getElementById('productId').value = id || '';
+            document.getElementById('modalTitle').textContent = id ? 'Editar Produto' : 'Novo Produto';
+            const pCat = document.getElementById('pCat');
+            pCat.innerHTML = '<option value="">Sem categoria</option>' + categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            if (id) {
+                const p = products.find(x => x.id === id);
+                if (p) { document.getElementById('pName').value = p.name; document.getElementById('pPrice').value = p.price; document.getElementById('pCost').value = p.costPrice || 0; document.getElementById('pStock').value = p.stock; document.getElementById('pCat').value = p.categoryId || ''; document.getElementById('pActive').checked = p.isActive; }
+            } else { document.getElementById('pName').value = ''; document.getElementById('pPrice').value = ''; document.getElementById('pCost').value = ''; document.getElementById('pStock').value = '0'; document.getElementById('pActive').checked = true; }
+            document.getElementById('productModal').classList.add('open');
+        }
+        function closeModal() { document.getElementById('productModal').classList.remove('open'); }
+
+        async function saveProduct(e) {
+            e.preventDefault();
+            const id = document.getElementById('productId').value;
+            const body = { name: document.getElementById('pName').value, price: parseFloat(document.getElementById('pPrice').value), costPrice: parseFloat(document.getElementById('pCost').value || 0), stock: parseInt(document.getElementById('pStock').value || 0), categoryId: document.getElementById('pCat').value || null, isActive: document.getElementById('pActive').checked };
+            if (id) { body.id = parseInt(id); }
+            try {
+                const res = await fetch(`${API}/api/products${id ? '/' + id : ''}`, (id ? { method: 'PUT' } : { method: 'POST' }));
+                // Can't use like that, need to do properly
+                const res2 = await fetch(`${API}/api/products${id ? '/' + id : ''}`, { method: id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                if (!res2.ok) throw new Error(await res2.text());
+                toast(id ? 'Produto atualizado!' : 'Produto criado!', 'success');
+                closeModal(); load();
+            } catch (err) { toast('Erro: ' + err.message, 'error'); }
+        }
+
+        // Fix the double-fetch issue above
+        async function saveProduct(e) {
+            e.preventDefault();
+            const id = document.getElementById('productId').value;
+            const body = { name: document.getElementById('pName').value, price: parseFloat(document.getElementById('pPrice').value), costPrice: parseFloat(document.getElementById('pCost').value || 0), stock: parseInt(document.getElementById('pStock').value || 0), categoryId: document.getElementById('pCat').value ? parseInt(document.getElementById('pCat').value) : null, isActive: document.getElementById('pActive').checked };
+            if (id) body.id = parseInt(id);
+            try {
+                const res = await fetch(`${API}/api/products${id ? '/' + id : ''}`, { method: id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                if (!res.ok) throw new Error(await res.text());
+                toast(id ? 'Produto atualizado!' : 'Produto criado!', 'success');
+                closeModal(); load();
+            } catch (err) { toast('Erro: ' + err.message, 'error'); }
+        }
+        load();
+    </script>
+</body>
+
+</html>

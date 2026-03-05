@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arena Beach – PDV / Bar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="../css/modern.css">
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon"><i class="ph-fill ph-beach-ball"></i></div>
+                <div>
+                    <h2>Arena Beach</h2><span>Gestão Esportiva</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-label">Principal</div>
+                    <a href="index.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-chart-line-up"></i></span> Dashboard</a>
+                    <a href="students.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-graduation-cap"></i></span> Alunos</a>
+                    <a href="customers.html" class="nav-item"><span class="nav-icon"><i class="ph ph-users"></i></span>
+                        Clientes</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Quadras</div>
+                    <a href="courts.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-tennis-court"></i></span> Quadras</a>
+                    <a href="schedule.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-calendar-check"></i></span> Agendamentos</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Bar / PDV</div>
+                    <a href="bar.html" class="nav-item active"><span class="nav-icon"><i
+                                class="ph ph-beer-stein"></i></span> PDV / Caixa</a>
+                    <a href="tabs.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-clipboard-text"></i></span> Comandas</a>
+                    <a href="cash_register.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-cash-register"></i></span> Caixa Diário</a>
+                    <a href="sales_history.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-receipt"></i></span> Histórico</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Estoque</div>
+                    <a href="inventory.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-package"></i></span> Estoque</a>
+                    <a href="purchase_orders.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-truck"></i></span> Pedidos de Compra</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Relatórios</div>
+                    <a href="reports.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-chart-pie-slice"></i></span> Relatórios</a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">Arena Beach v2.0</div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+        <div class="main">
+            <header class="topbar">
+                <div class="flex items-center gap-3">
+                    <button class="mobile-toggle" onclick="openSidebar()">☰</button>
+                    <h1>PDV – Ponto de Venda</h1>
+                </div>
+                <div class="topbar-right">
+                    <!-- Mode toggle -->
+                    <div class="flex gap-2">
+                        <button id="modeDirect" class="btn btn-primary btn-sm" onclick="setMode('direct')"><i
+                                class="ph ph-money"></i> Venda Direta</button>
+                        <button id="modeTab" class="btn btn-ghost btn-sm" onclick="setMode('tab')"><i
+                                class="ph ph-clipboard-text"></i> Comanda</button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="page-content" style="padding-bottom:0">
+                <div class="pos-layout">
+                    <!-- Left: Products -->
+                    <div class="pos-products">
+                        <!-- Category filter -->
+                        <div class="flex gap-2" style="flex-wrap:wrap">
+                            <button class="btn btn-primary btn-sm cat-btn" data-cat=""
+                                onclick="filterCat(this,'')">Todos</button>
+                            <div id="catButtons"></div>
+                        </div>
+                        <!-- Product Grid -->
+                        <div class="pos-product-grid" id="productGrid">
+                            <div class="loader">
+                                <div class="spinner"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Cart -->
+                    <div class="pos-cart">
+                        <div class="cart-header">
+                            <h3><i class="ph ph-shopping-cart"></i> Carrinho</h3>
+                            <button class="btn btn-ghost btn-sm" onclick="clearCart()">Limpar</button>
+                        </div>
+
+                        <!-- Tab mode: select existing tab -->
+                        <div id="tabSelector"
+                            style="display:none;padding:10px;border-bottom:1px solid var(--border-light)">
+                            <label class="form-label">Comanda</label>
+                            <select id="tabSelect" class="form-control" style="margin-top:4px">
+                                <option value="">Selecionar comanda...</option>
+                            </select>
+                        </div>
+
+                        <div class="cart-body" id="cartBody">
+                            <div class="cart-empty"><span style="font-size:32px"><i
+                                        class="ph ph-shopping-cart"></i></span><span>Carrinho vazio</span><span
+                                    class="text-muted">Selecione produtos ao lado</span></div>
+                        </div>
+
+                        <div class="cart-footer">
+                            <div class="cart-total"><span class="cart-total-label">Total</span><span
+                                    class="cart-total-value" id="cartTotal">R$ 0,00</span></div>
+                            <button class="btn btn-success btn-lg" id="checkoutBtn" onclick="openPayment()"
+                                style="width:100%" disabled><i class="ph ph-check-circle"></i> Finalizar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="modal-overlay" id="paymentModal">
+        <div class="modal" style="max-width:420px">
+            <div class="modal-header"><span class="modal-title" id="paymentTitle">Finalizar Venda</span><button
+                    class="modal-close" onclick="closePayment()">✕</button></div>
+            <div
+                style="margin-bottom:16px;padding:14px;background:var(--bg-tertiary);border-radius:var(--radius-sm);text-align:center">
+                <div style="font-size:12px;color:var(--text-muted)">Total a Pagar</div>
+                <div style="font-size:32px;font-weight:800;color:var(--accent)" id="payTotal">R$ 0,00</div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Forma de Pagamento</label>
+                <div class="flex gap-2" style="flex-wrap:wrap">
+                    <button class="btn btn-ghost pay-type" data-pay="Dinheiro" onclick="selectPayType(this)"><i
+                            class="ph ph-money"></i> Dinheiro</button>
+                    <button class="btn btn-ghost pay-type" data-pay="Cartão Crédito" onclick="selectPayType(this)"><i
+                            class="ph ph-credit-card"></i> Crédito</button>
+                    <button class="btn btn-ghost pay-type" data-pay="Cartão Débito" onclick="selectPayType(this)"><i
+                            class="ph ph-credit-card"></i> Débito</button>
+                    <button class="btn btn-ghost pay-type" data-pay="PIX" onclick="selectPayType(this)"><i
+                            class="ph ph-lightning"></i> PIX</button>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-ghost" onclick="closePayment()">Cancelar</button>
+                <button class="btn btn-success" id="confirmPayBtn" onclick="confirmPayment()" disabled>Confirmar
+                    Pagamento</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <script>
+        const API = '';
+        let products = [], cart = [], mode = 'direct', selectedPayType = '', openTabs = [];
+
+        function toast(msg, type = 'info') {
+            const c = document.getElementById('toastContainer');
+            const t = document.createElement('div'); t.className = `toast ${type}`;
+            t.innerHTML = `<i class="ph-bold ${type === 'success' ? 'ph-check-circle' : type === 'error' ? 'ph-x-circle' : 'ph-info'}"></i><span>${msg}</span>`;
+            c.appendChild(t); setTimeout(() => t.remove(), 4000);
+        }
+        function openSidebar() { document.getElementById('sidebar').classList.add('mobile-open'); document.getElementById('sidebarOverlay').classList.add('visible'); }
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('sidebarOverlay').classList.remove('visible'); }
+        const fmt = v => 'R$ ' + parseFloat(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+
+        const catIcons = { 'Bebidas': '🥤', 'Snacks': '🍟', 'Energéticos': '⚡', 'Aluguel': '🎾', 'Outros': '📦' };
+        function catIcon(name) { return catIcons[name] || '📦'; }
+        function productEmoji(name) {
+            const n = name.toLowerCase();
+            if (n.includes('água') || n.includes('water')) return '💧';
+            if (n.includes('cerveja') || n.includes('beer')) return '🍺';
+            if (n.includes('refri') || n.includes('soda')) return '🥤';
+            if (n.includes('energy') || n.includes('isoton')) return '⚡';
+            if (n.includes('bar') || n.includes('snack')) return '🍫';
+            if (n.includes('toalha') || n.includes('towel')) return '🏖️';
+            return '🛍️';
+        }
+
+        function setMode(m) {
+            mode = m;
+            document.getElementById('modeDirect').className = m === 'direct' ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm';
+            document.getElementById('modeTab').className = m === 'tab' ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm';
+            document.getElementById('tabSelector').style.display = m === 'tab' ? '' : 'none';
+            if (m === 'tab') loadOpenTabs();
+        }
+
+        async function loadOpenTabs() {
+            try {
+                openTabs = await fetch(`${API}/api/tabs?status=Open`).then(r => r.json());
+                const sel = document.getElementById('tabSelect');
+                sel.innerHTML = '<option value="">Selecionar comanda...</option>' + openTabs.map(t => `<option value="${t.id}">Comanda #${t.id} – ${t.customerName} (${fmt(t.total)})</option>`).join('');
+            } catch (e) { }
+        }
+
+        async function loadProducts() {
+            try {
+                products = await fetch(`${API}/api/products`).then(r => r.json()).then(d => d.filter(p => p.isActive));
+                // Load categories for filter
+                const cats = [...new Set(products.map(p => p.category?.name || 'Outros').filter(Boolean))];
+                const catDiv = document.getElementById('catButtons');
+                catDiv.innerHTML = cats.map(c => `<button class="btn btn-ghost btn-sm cat-btn" data-cat="${c}" onclick="filterCat(this,'${c}')">${catIcon(c)} ${c}</button>`).join('');
+                renderProducts(products);
+            } catch (e) { toast('Erro ao carregar produtos', 'error'); }
+        }
+
+        function filterCat(btn, cat) {
+            document.querySelectorAll('.cat-btn').forEach(b => b.className = 'btn btn-ghost btn-sm cat-btn');
+            btn.className = 'btn btn-primary btn-sm cat-btn';
+            renderProducts(cat ? products.filter(p => (p.category?.name || 'Outros') === cat) : products);
+        }
+
+        function renderProducts(list) {
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = list.map(p => `
+    <div class="product-card ${p.stock === 0 ? 'out-of-stock' : p.stock < 5 ? 'low-stock' : ''}" onclick="addToCart(${p.id})">
+      <div class="pcard-icon">${productEmoji(p.name)}</div>
+      <div class="pcard-name">${p.name}</div>
+      <div class="pcard-price">${fmt(p.price)}</div>
+      <div class="pcard-stock">${p.stock === 0 ? 'Sem estoque' : p.stock < 5 ? '⚠️ ' + p.stock + ' un.' : p.stock + ' un.'}</div>
+    </div>`).join('');
+        }
+
+        function addToCart(productId) {
+            const p = products.find(x => x.id === productId);
+            if (!p || p.stock <= 0) return;
+            const ex = cart.find(x => x.productId === productId);
+            if (ex) { if (ex.qty < p.stock) ex.qty++; else { toast('Estoque insuficiente', 'warning'); return; } }
+            else cart.push({ productId, name: p.name, price: p.price, qty: 1 });
+            renderCart();
+        }
+
+        function changeQty(productId, delta) {
+            const i = cart.findIndex(x => x.productId === productId);
+            if (i < 0) return;
+            cart[i].qty += delta;
+            if (cart[i].qty <= 0) cart.splice(i, 1);
+            renderCart();
+        }
+
+        function clearCart() { cart = []; renderCart(); }
+
+        function renderCart() {
+            const body = document.getElementById('cartBody');
+            if (!cart.length) { body.innerHTML = '<div class="cart-empty"><span style="font-size:32px">🛒</span><span>Carrinho vazio</span></div>'; }
+            else body.innerHTML = cart.map(item => `
+    <div class="cart-item">
+      <div><div class="cart-item-name">${item.name}</div><div class="cart-item-price">${fmt(item.price)} / un.</div></div>
+      <div class="qty-controls">
+        <button class="qty-btn" onclick="changeQty(${item.productId},-1)">−</button>
+        <span class="qty-value">${item.qty}</span>
+        <button class="qty-btn" onclick="changeQty(${item.productId},1)">+</button>
+      </div>
+    </div>`).join('');
+            const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+            document.getElementById('cartTotal').textContent = fmt(total);
+            document.getElementById('checkoutBtn').disabled = cart.length === 0;
+        }
+
+        function openPayment() {
+            if (!cart.length) return;
+            const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+            document.getElementById('payTotal').textContent = fmt(total);
+            document.getElementById('paymentTitle').textContent = mode === 'tab' ? 'Adicionar à Comanda' : 'Finalizar Venda';
+            selectedPayType = ''; document.getElementById('confirmPayBtn').disabled = true;
+            document.querySelectorAll('.pay-type').forEach(b => b.classList.remove('btn-primary'));
+            document.getElementById('paymentModal').classList.add('open');
+            if (mode === 'tab') {
+                document.querySelector('.pay-type[data-pay="Dinheiro"]').click(); // auto-select for tab
+            }
+        }
+        function closePayment() { document.getElementById('paymentModal').classList.remove('open'); }
+
+        function selectPayType(btn) {
+            document.querySelectorAll('.pay-type').forEach(b => b.className = 'btn btn-ghost pay-type');
+            btn.classList.add('btn-primary');
+            selectedPayType = btn.dataset.pay;
+            document.getElementById('confirmPayBtn').disabled = false;
+        }
+
+        async function confirmPayment() {
+            document.getElementById('confirmPayBtn').disabled = true;
+            try {
+                if (mode === 'tab') {
+                    const tabId = document.getElementById('tabSelect').value;
+                    if (!tabId) { toast('Selecione uma comanda', 'warning'); document.getElementById('confirmPayBtn').disabled = false; return; }
+                    // Add each item to tab
+                    for (const item of cart) {
+                        const res = await fetch(`${API}/api/tabs/${tabId}/items`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId: item.productId, quantity: item.qty }) });
+                        if (!res.ok) { const err = await res.text(); throw new Error(err); }
+                    }
+                    toast('Itens adicionados à comanda!', 'success');
+                } else {
+                    const body = { paymentType: selectedPayType, items: cart.map(i => ({ productId: i.productId, quantity: i.qty, unitPrice: i.price })) };
+                    const res = await fetch(`${API}/api/sales`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                    if (!res.ok) throw new Error(await res.text());
+                    toast('Venda registrada com sucesso! ✅', 'success');
+                }
+                closePayment(); clearCart();
+                // refresh product stock counts
+                loadProducts();
+            } catch (err) { toast('Erro: ' + err.message, 'error'); document.getElementById('confirmPayBtn').disabled = false; }
+        }
+
+        loadProducts();
+    </script>
+</body>
+
+</html>

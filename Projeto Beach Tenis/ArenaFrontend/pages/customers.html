@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arena Beach – Clientes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="../css/modern.css">
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon"><i class="ph-fill ph-beach-ball"></i></div>
+                <div>
+                    <h2>Arena Beach</h2><span>Gestão Esportiva</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-label">Principal</div>
+                    <a href="index.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-chart-line-up"></i></span> Dashboard</a>
+                    <a href="students.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-graduation-cap"></i></span> Alunos</a>
+                    <a href="customers.html" class="nav-item active"><span class="nav-icon"><i
+                                class="ph ph-users"></i></span> Clientes</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Quadras</div>
+                    <a href="courts.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-tennis-court"></i></span> Quadras</a>
+                    <a href="schedule.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-calendar-check"></i></span> Agendamentos</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Bar / PDV</div>
+                    <a href="bar.html" class="nav-item"><span class="nav-icon"><i class="ph ph-beer-stein"></i></span>
+                        PDV / Caixa</a>
+                    <a href="tabs.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-clipboard-text"></i></span> Comandas</a>
+                    <a href="cash_register.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-cash-register"></i></span> Caixa Diário</a>
+                    <a href="sales_history.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-receipt"></i></span> Histórico</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Estoque</div>
+                    <a href="inventory.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-package"></i></span> Estoque</a>
+                    <a href="purchase_orders.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-truck"></i></span> Pedidos</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Relatórios</div>
+                    <a href="reports.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-chart-pie-slice"></i></span> Relatórios</a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">Arena Beach v2.0</div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+        <div class="main">
+            <header class="topbar">
+                <div class="flex items-center gap-3">
+                    <button class="mobile-toggle" onclick="openSidebar()">☰</button>
+                    <h1>Clientes</h1>
+                </div>
+                <div class="topbar-right">
+                    <button class="btn btn-primary" onclick="openModal()">+ Novo Cliente</button>
+                </div>
+            </header>
+            <div class="page-content">
+                <div class="page-header">
+                    <div>
+                        <div class="page-title">Gerenciar Clientes</div>
+                        <div class="page-subtitle" id="totalCount">Carregando...</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="filter-bar">
+                        <input type="text" id="searchInput" class="search-input"
+                            placeholder="Buscar por nome ou telefone..." oninput="filterCustomers()">
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>Telefone</th>
+                                    <th>E-mail</th>
+                                    <th>Cadastrado em</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customersTable">
+                                <tr>
+                                    <td colspan="5">
+                                        <div class="loader">
+                                            <div class="spinner"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" style="max-width:460px">
+            <div class="modal-header">
+                <span class="modal-title" id="modalTitle">Novo Cliente</span>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <form onsubmit="saveCustomer(event)">
+                <input type="hidden" id="customerId">
+                <div class="form-group"><label class="form-label">Nome *</label><input id="cName" class="form-control"
+                        required placeholder="Nome completo"></div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Telefone</label><input id="cPhone"
+                            class="form-control" placeholder="(11) 99999-9999"></div>
+                    <div class="form-group"><label class="form-label">E-mail</label><input id="cEmail" type="email"
+                            class="form-control" placeholder="email@exemplo.com"></div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <script>
+        const API = '';
+        let customers = [];
+        function toast(msg, type = 'info') { const c = document.getElementById('toastContainer'); const t = document.createElement('div'); t.className = `toast ${type}`; t.innerHTML = `<i class="ph-bold ${type === 'success' ? 'ph-check-circle' : type === 'error' ? 'ph-x-circle' : 'ph-info'}"></i><span>${msg}</span>`; c.appendChild(t); setTimeout(() => t.remove(), 4000); }
+        function openSidebar() { document.getElementById('sidebar').classList.add('mobile-open'); document.getElementById('sidebarOverlay').classList.add('visible'); }
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('sidebarOverlay').classList.remove('visible'); }
+        function initials(name) { return name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase(); }
+
+        async function loadCustomers() {
+            try {
+                customers = await fetch(`${API}/api/customers`).then(r => r.json());
+                renderCustomers(customers);
+            } catch (e) { toast('Erro ao carregar clientes', 'error'); }
+        }
+
+        function filterCustomers() {
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            renderCustomers(customers.filter(c => c.name.toLowerCase().includes(q) || (c.phone || '').includes(q)));
+        }
+
+        function renderCustomers(list) {
+            document.getElementById('totalCount').textContent = `${list.length} cliente(s) cadastrado(s)`;
+            const tbody = document.getElementById('customersTable');
+            if (!list.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-muted)">Nenhum cliente encontrado</td></tr>'; return; }
+            tbody.innerHTML = list.map(c => `<tr>
+    <td><div class="flex items-center gap-3">
+      <div style="width:36px;height:36px;border-radius:10px;background:var(--green-soft);color:var(--green);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0">${initials(c.name)}</div>
+      <span style="font-weight:600;color:var(--text-primary)">${c.name}</span>
+    </div></td>
+    <td>${c.phone || '–'}</td>
+    <td>${c.email || '–'}</td>
+    <td style="color:var(--text-muted);font-size:12px">${new Date(c.createdAt).toLocaleDateString('pt-BR')}</td>
+    <td><button class="btn btn-ghost btn-sm" onclick="openModal(${c.id})"><i class="ph ph-pencil"></i></button></td>
+  </tr>`).join('');
+        }
+
+        function openModal(id = null) {
+            document.getElementById('customerId').value = id || '';
+            document.getElementById('modalTitle').textContent = id ? 'Editar Cliente' : 'Novo Cliente';
+            document.getElementById('cName').value = ''; document.getElementById('cPhone').value = ''; document.getElementById('cEmail').value = '';
+            if (id) { const c = customers.find(x => x.id === id); if (c) { document.getElementById('cName').value = c.name; document.getElementById('cPhone').value = c.phone || ''; document.getElementById('cEmail').value = c.email || ''; } }
+            document.getElementById('modalOverlay').classList.add('open');
+        }
+        function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+
+        async function saveCustomer(e) {
+            e.preventDefault();
+            const id = document.getElementById('customerId').value;
+            const body = { name: document.getElementById('cName').value, phone: document.getElementById('cPhone').value || null, email: document.getElementById('cEmail').value || null };
+            if (id) body.id = parseInt(id);
+            try {
+                const res = await fetch(`${API}/api/customers${id ? '/' + id : ''}`, { method: id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                if (!res.ok) throw new Error(await res.text());
+                toast(id ? 'Cliente atualizado!' : 'Cliente cadastrado!', 'success');
+                closeModal(); loadCustomers();
+            } catch (err) { toast('Erro: ' + err.message, 'error'); }
+        }
+        loadCustomers();
+    </script>
+</body>
+
+</html>

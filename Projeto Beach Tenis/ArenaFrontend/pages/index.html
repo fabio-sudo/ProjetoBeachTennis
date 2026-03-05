@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arena Beach – Dashboard</title>
+    <meta name="description" content="Dashboard do sistema de gerenciamento da Arena Beach Tennis">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="../css/modern.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon"><i class="ph-fill ph-beach-ball"></i></div>
+                <div>
+                    <h2>Arena Beach</h2><span>Gestão Esportiva</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-label">Principal</div>
+                    <a href="index.html" class="nav-item active"><span class="nav-icon"><i
+                                class="ph ph-chart-line-up"></i></span> Dashboard</a>
+                    <a href="students.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-graduation-cap"></i></span> Alunos</a>
+                    <a href="customers.html" class="nav-item"><span class="nav-icon"><i class="ph ph-users"></i></span>
+                        Clientes</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Quadras</div>
+                    <a href="courts.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-tennis-court"></i></span> Quadras</a>
+                    <a href="schedule.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-calendar-check"></i></span> Agendamentos</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Bar / PDV</div>
+                    <a href="bar.html" class="nav-item"><span class="nav-icon"><i class="ph ph-beer-stein"></i></span>
+                        PDV / Caixa</a>
+                    <a href="tabs.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-clipboard-text"></i></span> Comandas</a>
+                    <a href="cash_register.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-cash-register"></i></span> Caixa Diário</a>
+                    <a href="sales_history.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-receipt"></i></span> Histórico</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Estoque</div>
+                    <a href="inventory.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-package"></i></span> Estoque</a>
+                    <a href="purchase_orders.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-truck"></i></span> Pedidos de Compra</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Relatórios</div>
+                    <a href="reports.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-chart-pie-slice"></i></span> Relatórios</a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">Arena Beach v2.0</div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+        <!-- Main -->
+        <div class="main">
+            <header class="topbar">
+                <div class="flex items-center gap-3">
+                    <button class="mobile-toggle" onclick="openSidebar()">☰</button>
+                    <h1>Dashboard</h1>
+                </div>
+                <div class="topbar-right">
+                    <span id="topbarDate" class="text-muted"></span>
+                    <span id="crBadge" class="topbar-badge" style="display:none"><i class="ph ph-wallet"></i> Caixa
+                        Aberto</span>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <!-- KPI Cards -->
+                <div class="kpi-grid" id="kpiGrid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon green"><i class="ph ph-currency-circle-dollar"></i></div>
+                        <div class="kpi-label">Vendas Hoje</div>
+                        <div class="kpi-value" id="kpiToday">R$ 0</div>
+                        <div class="kpi-sub">PDV + Comandas</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon blue"><i class="ph ph-chart-bar"></i></div>
+                        <div class="kpi-label">Vendas no Mês</div>
+                        <div class="kpi-value" id="kpiMonth">R$ 0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon purple"><i class="ph ph-graduation-cap"></i></div>
+                        <div class="kpi-label">Alunos Ativos</div>
+                        <div class="kpi-value" id="kpiStudents">0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon orange"><i class="ph ph-clipboard-text"></i></div>
+                        <div class="kpi-label">Comandas Abertas</div>
+                        <div class="kpi-value" id="kpiTabs">0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon red"><i class="ph ph-warning-circle"></i></div>
+                        <div class="kpi-label">Estoque Baixo</div>
+                        <div class="kpi-value" id="kpiLowStock">0</div>
+                        <div class="kpi-sub">Produtos críticos</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon blue"><i class="ph ph-calendar"></i></div>
+                        <div class="kpi-label">Reservas Hoje</div>
+                        <div class="kpi-value" id="kpiRes">0</div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="charts-grid mb-6">
+                    <div class="card">
+                        <div class="card-header"><span class="card-title">Vendas por Dia (30 dias)</span></div>
+                        <div class="chart-container"><canvas id="chartSalesByDay"></canvas></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><span class="card-title">Por Categoria</span></div>
+                        <div class="chart-container"><canvas id="chartByCategory"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- Top Products -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Top Produtos</span>
+                        <a href="reports.html" class="btn btn-ghost btn-sm">Ver Relatórios →</a>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Produto</th>
+                                    <th>Qtd. Vendida</th>
+                                    <th>Receita</th>
+                                </tr>
+                            </thead>
+                            <tbody id="topProductsTable">
+                                <tr>
+                                    <td colspan="4" class="text-muted" style="text-align:center;padding:20px">
+                                        Carregando...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        const API = '';
+        const fmt = v => 'R$ ' + parseFloat(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+
+        document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
+
+        function openSidebar() { document.getElementById('sidebar').classList.add('mobile-open'); document.getElementById('sidebarOverlay').classList.add('visible'); }
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('sidebarOverlay').classList.remove('visible'); }
+
+        function toast(msg, type = 'info') {
+            const c = document.getElementById('toastContainer');
+            const t = document.createElement('div');
+            t.className = `toast ${type}`;
+            t.innerHTML = `<i class="ph-bold ${type === 'success' ? 'ph-check-circle' : type === 'error' ? 'ph-x-circle' : 'ph-info'}"></i><span>${msg}</span>`;
+            c.appendChild(t);
+            setTimeout(() => t.remove(), 4000);
+        }
+
+        async function loadDashboard() {
+            try {
+                const d = await fetch(`${API}/api/analytics/dashboard`).then(r => r.json());
+                document.getElementById('kpiToday').textContent = fmt(d.salesToday);
+                document.getElementById('kpiMonth').textContent = fmt(d.salesMonth);
+                document.getElementById('kpiStudents').textContent = d.activeStudents;
+                document.getElementById('kpiTabs').textContent = d.openTabs;
+                document.getElementById('kpiLowStock').textContent = d.lowStockProducts;
+                document.getElementById('kpiRes').textContent = d.totalReservationsToday;
+                if (d.cashRegisterOpen) document.getElementById('crBadge').style.display = '';
+            } catch (e) { toast('Erro ao carregar dashboard', 'error'); }
+        }
+
+        async function loadCharts() {
+            try {
+                const days = await fetch(`${API}/api/analytics/sales-by-day?days=30`).then(r => r.json());
+                const accent = '#22d3ee';
+                new Chart(document.getElementById('chartSalesByDay'), {
+                    type: 'line',
+                    data: {
+                        labels: days.map(d => d.date.slice(5)), // MM-DD
+                        datasets: [{ label: 'Vendas', data: days.map(d => d.total), borderColor: accent, backgroundColor: 'rgba(34,211,238,0.08)', fill: true, tension: 0.4, pointRadius: 3, pointBackgroundColor: accent }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: '#30363d' }, ticks: { color: '#8b949e', font: { size: 10 } } }, y: { grid: { color: '#30363d' }, ticks: { color: '#8b949e', callback: v => 'R$' + v } } } }
+                });
+            } catch (e) { }
+
+            try {
+                const cats = await fetch(`${API}/api/analytics/sales-by-category`).then(r => r.json());
+                const colors = ['#22d3ee', '#34d399', '#fbbf24', '#f87171', '#a78bfa', '#fb7185'];
+                new Chart(document.getElementById('chartByCategory'), {
+                    type: 'doughnut',
+                    data: { labels: cats.map(c => c.category), datasets: [{ data: cats.map(c => c.total), backgroundColor: colors, borderColor: '#1e2433', borderWidth: 2 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#8b949e', font: { size: 11 }, padding: 12 } } } }
+                });
+            } catch (e) { }
+        }
+
+        async function loadTopProducts() {
+            try {
+                const prods = await fetch(`${API}/api/analytics/top-products?limit=8`).then(r => r.json());
+                const tbody = document.getElementById('topProductsTable');
+                if (!prods.length) { tbody.innerHTML = '<tr><td colspan="4" class="text-muted" style="text-align:center">Nenhum dado</td></tr>'; return; }
+                tbody.innerHTML = prods.map((p, i) => `
+      <tr>
+        <td><span class="badge badge-gray">#${i + 1}</span></td>
+        <td style="font-weight:600;color:var(--text-primary)">${p.productName}</td>
+        <td>${p.totalQty} un.</td>
+        <td style="color:var(--green);font-weight:600">${fmt(p.totalRevenue)}</td>
+      </tr>`).join('');
+            } catch (e) { }
+        }
+
+        loadDashboard(); loadCharts(); loadTopProducts();
+    </script>
+</body>
+
+</html>
