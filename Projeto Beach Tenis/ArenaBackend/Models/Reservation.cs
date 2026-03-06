@@ -33,6 +33,13 @@ namespace ArenaBackend.Models
         [Column(TypeName = "decimal(10, 2)")]
         public decimal Price { get; set; }
 
+        [Required]
+        [StringLength(20)]
+        public string Status { get; set; } = "Agendado"; // Agendado, Finalizado, Cancelado
+
+        [StringLength(50)]
+        public string? PaymentType { get; set; } // Dinheiro, PIX, Cartão Crédito, Cartão Débito
+
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }

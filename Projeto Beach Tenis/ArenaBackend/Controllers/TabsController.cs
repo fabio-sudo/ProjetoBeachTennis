@@ -87,5 +87,21 @@ namespace ArenaBackend.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        // POST: api/tabs/{id}/cancel
+        [HttpPost("{id}/cancel")]
+        public async Task<IActionResult> CancelTab(int id, [FromBody] CancelActionDto dto)
+        {
+            try
+            {
+                var message = await _tabsService.CancelTabAsync(id, dto);
+                return Ok(new { message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                if (ex.Message.Contains("não encontrad")) return NotFound(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

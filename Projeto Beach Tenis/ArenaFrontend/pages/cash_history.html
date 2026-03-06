@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arena Beach – Histórico de Caixa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="../css/modern.css">
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon"><i class="ph-fill ph-beach-ball"></i></div>
+                <div>
+                    <h2>Arena Beach</h2><span>Gestão Esportiva</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-label">Principal</div>
+                    <a href="index.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-chart-line-up"></i></span> Dashboard</a>
+                    <a href="students.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-graduation-cap"></i></span> Alunos</a>
+                    <a href="customers.html" class="nav-item"><span class="nav-icon"><i class="ph ph-users"></i></span>
+                        Clientes</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Quadras</div>
+                    <a href="courts.html" class="nav-item"><span class="nav-icon"><i class="ph ph-map-pin"></i></span>
+                        Quadras</a>
+                    <a href="schedule.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-calendar-check"></i></span> Agendamentos</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Bar / PDV</div>
+                    <a href="bar.html" class="nav-item"><span class="nav-icon"><i class="ph ph-beer-stein"></i></span>
+                        PDV / Caixa</a>
+                    <a href="tabs.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-clipboard-text"></i></span> Comandas</a>
+                    <a href="cash_register.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-cash-register"></i></span> Caixa Diário</a>
+                    <a href="cash_history.html" class="nav-item active"><span class="nav-icon"><i
+                                class="ph ph-list-numbers"></i></span> Histórico de Caixa</a>
+                    <a href="sales_history.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-receipt"></i></span> Histórico de Vendas</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Estoque</div>
+                    <a href="inventory.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-package"></i></span> Estoque</a>
+                    <a href="purchase_orders.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-truck"></i></span> Pedidos de Compra</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-label">Relatórios</div>
+                    <a href="reports.html" class="nav-item"><span class="nav-icon"><i
+                                class="ph ph-chart-pie-slice"></i></span> Relatórios</a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">Arena Beach v2.0</div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+        <div class="main">
+            <header class="topbar">
+                <div class="flex items-center gap-3"><button class="mobile-toggle" onclick="openSidebar()">☰</button>
+                    <h1>Histórico de Caixa</h1>
+                </div>
+            </header>
+            <div class="page-content">
+                <div class="card">
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Data (Abertura)</th>
+                                    <th>Valor Abertura</th>
+                                    <th>Vendas</th>
+                                    <th>Valor Fechamento</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cashTable">
+                                <tr>
+                                    <td colspan="7">
+                                        <div class="loader">
+                                            <div class="spinner"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Cash Register Modal -->
+    <div class="modal-overlay" id="editCashModal">
+        <div class="modal" style="max-width:400px">
+            <div class="modal-header"><span class="modal-title">Editar Caixa</span><button class="modal-close"
+                    onclick="document.getElementById('editCashModal').classList.remove('open')">✕</button></div>
+            <div class="form-group"><label class="form-label">Valor de Abertura (R$)</label>
+                <input type="number" step="0.01" id="editOpeningAmt" class="form-control" required>
+            </div>
+            <div class="form-group"><label class="form-label">Valor de Fechamento (R$)</label>
+                <input type="number" step="0.01" id="editClosingAmt" class="form-control" required>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-ghost"
+                    onclick="document.getElementById('editCashModal').classList.remove('open')">Cancelar</button>
+                <button class="btn btn-primary" id="confirmEditBtn" onclick="confirmEdit()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <script>
+        const API = '';
+        let allRegisters = [];
+        const fmt = v => 'R$ ' + parseFloat(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+        function toast(msg, type = 'info') { const c = document.getElementById('toastContainer'); const t = document.createElement('div'); t.className = `toast ${type}`; t.innerHTML = `<i class="ph-bold ${type === 'success' ? 'ph-check-circle' : type === 'error' ? 'ph-x-circle' : 'ph-info'}"></i><span>${msg}</span>`; c.appendChild(t); setTimeout(() => t.remove(), 4000); }
+        function openSidebar() { document.getElementById('sidebar').classList.add('mobile-open'); document.getElementById('sidebarOverlay').classList.add('visible'); }
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('sidebarOverlay').classList.remove('visible'); }
+
+        async function loadCashHistory() {
+            try {
+                allRegisters = await fetch(`${API}/api/cash/history`).then(r => r.json());
+                const tbody = document.getElementById('cashTable');
+                if (!allRegisters.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted)">Nenhum caixa histórico encontrado</td></tr>'; return; }
+
+                tbody.innerHTML = allRegisters.map(r => {
+                    const statusBadge = r.status === 'Cancelled' ? '<span class="badge badge-red">Cancelado</span>' : '<span class="badge badge-gray">Fechado</span>';
+                    return `<tr>
+                      <td>#${r.id}</td>
+                      <td>${new Date(r.openedAt).toLocaleString('pt-BR')}</td>
+                      <td style="font-weight:600">${fmt(r.openingAmount)}</td>
+                      <td style="color:var(--green);font-weight:600">${fmt(r.salesTotal)}</td>
+                      <td style="font-weight:600">${fmt(r.closingAmount)}</td>
+                      <td>${statusBadge}</td>
+                      <td class="flex gap-2">
+                        <button class="btn btn-ghost btn-sm" onclick="openEdit(${r.id})" title="Editar"><i class="ph ph-pencil"></i></button>
+                        ${r.status !== 'Cancelled' ? `<button class="btn btn-danger btn-sm" onclick="cancelCash(${r.id})" title="Cancelar Caixa"><i class="ph ph-x-circle"></i></button>` : ''}
+                      </td>
+                    </tr>`;
+                }).join('');
+            } catch (e) { toast('Erro ao carregar histórico', 'error'); }
+        }
+
+        let editId = null;
+        window.openEdit = function (id) {
+            const r = allRegisters.find(x => x.id === id);
+            if (!r) { toast('Registro não encontrado no estado local', 'error'); return; }
+            editId = id;
+            document.getElementById('editOpeningAmt').value = r.openingAmount;
+            document.getElementById('editClosingAmt').value = r.closingAmount || 0;
+            document.getElementById('editCashModal').classList.add('open');
+        };
+
+        window.confirmEdit = async function () {
+            if (!editId) return;
+            const openAmtStr = document.getElementById('editOpeningAmt').value;
+            const closeAmtStr = document.getElementById('editClosingAmt').value;
+
+            const openAmt = parseFloat(openAmtStr || 0);
+            const closeAmt = parseFloat(closeAmtStr || 0);
+
+            document.getElementById('confirmEditBtn').disabled = true;
+            try {
+                const payload = { openingAmount: openAmt, closingAmount: closeAmt };
+                const res = await fetch(`${API}/api/cash/${editId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error(await res.text());
+                toast('Caixa atualizado com sucesso.', 'success');
+                document.getElementById('editCashModal').classList.remove('open');
+                editId = null;
+                await loadCashHistory();
+            } catch (e) {
+                console.error("Edit Cash Error:", e);
+                toast('Erro: ' + (e.message || 'Falha ao atualizar'), 'error');
+            } finally {
+                document.getElementById('confirmEditBtn').disabled = false;
+            }
+        };
+
+        window.cancelCash = async function (id) {
+            if (!confirm('Deseja realmente cancelar este caixa histórico? Esta ação atualizará os painéis.')) return;
+            try {
+                const res = await fetch(`${API}/api/cash/${id}/cancel`, { method: 'POST' });
+                if (!res.ok) throw new Error(await res.text());
+                toast('Caixa cancelado com sucesso.', 'success');
+                await loadCashHistory();
+            } catch (e) {
+                console.error("Cancel Cash Error:", e);
+                toast('Erro: ' + (e.message || 'Falha ao cancelar caixa'), 'error');
+            }
+        };
+
+        loadCashHistory();
+    </script>
+</body>
+
+</html>

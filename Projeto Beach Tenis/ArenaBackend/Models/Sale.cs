@@ -14,6 +14,8 @@ namespace ArenaBackend.Models
 
         public string PaymentType { get; set; } = "Dinheiro"; // Default
 
+        public string Status { get; set; } = "Completed";
+
         [Column(TypeName = "decimal(10, 2)")]
         public decimal TotalAmount { get; set; }
 

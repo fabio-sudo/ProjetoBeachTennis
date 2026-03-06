@@ -780,58 +780,148 @@ tbody tr:hover td {
 
 .pos-product-grid {
     display: grid;
+    /* Desktop default: auto-fill minmax 140px creates ~4-6 items per row depending on screen width */
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 10px;
+    grid-auto-rows: max-content;
+    gap: 12px;
     overflow-y: auto;
     padding-right: 4px;
+    padding-bottom: 20px;
     flex: 1;
 }
 
+@media (max-width: 1024px) {
+    .pos-product-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .pos-product-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Category Chips Container */
+.cat-scroll-container {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: none;
+    /* Firefox */
+}
+
+.cat-scroll-container::-webkit-scrollbar {
+    display: none;
+    /* Chrome/Safari */
+}
+
+.cat-btn {
+    border-radius: 24px !important;
+    padding: 6px 16px !important;
+    white-space: nowrap;
+    font-weight: 600 !important;
+    background: var(--bg-tertiary) !important;
+    border: 1px solid var(--border-light) !important;
+    color: var(--text-secondary) !important;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition);
+}
+
+.cat-btn:hover {
+    background: var(--bg-hover) !important;
+    color: var(--text-primary) !important;
+}
+
+.cat-btn.active {
+    background: var(--accent) !important;
+    color: var(--bg-primary) !important;
+    border-color: var(--accent) !important;
+    box-shadow: 0 4px 12px rgba(0, 240, 255, 0.3) !important;
+}
+
 .product-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: linear-gradient(145deg, var(--bg-card), var(--bg-tertiary));
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    /* softer border */
     border-radius: var(--radius);
-    padding: 14px;
+    /* more rounded */
+    padding: 16px 12px;
     text-align: center;
     cursor: pointer;
-    transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+    transition: all 0.2s ease;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
     align-items: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.product-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: transparent;
+    transition: background 0.3s ease;
 }
 
 .product-card:hover {
-    transform: translateY(-2px);
-    border-color: var(--accent);
-    box-shadow: 0 0 0 1px var(--accent);
+    transform: translateY(-4px);
+    border-color: var(--border);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+}
+
+.product-card:hover::before {
+    background: var(--accent);
 }
 
 .product-card:active {
-    transform: scale(0.97);
+    transform: scale(0.96);
 }
 
 .product-card .pcard-icon {
-    font-size: 32px;
+    font-size: 28px;
     line-height: 1;
+    margin-bottom: 2px;
 }
 
 .product-card .pcard-name {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--text-primary);
-    line-height: 1.3;
+    line-height: 1.2;
+    margin-bottom: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 32px;
 }
 
 .product-card .pcard-price {
     font-size: 14px;
-    font-weight: 700;
-    color: var(--accent);
+    font-weight: 800;
+    color: var(--bg-primary);
+    background: var(--accent);
+    padding: 4px 10px;
+    border-radius: 8px;
+    width: 90%;
+    margin-top: auto;
+    box-shadow: 0 2px 8px rgba(0, 240, 255, 0.2);
 }
 
 .product-card .pcard-stock {
-    font-size: 10px;
+    font-size: 11px;
+    font-weight: 500;
     color: var(--text-muted);
+    margin-top: 4px;
 }
 
 .product-card.out-of-stock {

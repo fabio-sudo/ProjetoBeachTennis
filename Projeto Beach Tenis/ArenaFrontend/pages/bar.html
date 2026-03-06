@@ -32,8 +32,8 @@
                 </div>
                 <div class="nav-section">
                     <div class="nav-section-label">Quadras</div>
-                    <a href="courts.html" class="nav-item"><span class="nav-icon"><i
-                                class="ph ph-tennis-court"></i></span> Quadras</a>
+                    <a href="courts.html" class="nav-item"><span class="nav-icon"><i class="ph ph-map-pin"></i></span>
+                        Quadras</a>
                     <a href="schedule.html" class="nav-item"><span class="nav-icon"><i
                                 class="ph ph-calendar-check"></i></span> Agendamentos</a>
                 </div>
@@ -86,11 +86,14 @@
                 <div class="pos-layout">
                     <!-- Left: Products -->
                     <div class="pos-products">
-                        <!-- Category filter -->
-                        <div class="flex gap-2" style="flex-wrap:wrap">
-                            <button class="btn btn-primary btn-sm cat-btn" data-cat=""
-                                onclick="filterCat(this,'')">Todos</button>
-                            <div id="catButtons"></div>
+                        <!-- Search and Filters -->
+                        <div style="margin-bottom: 12px;">
+                            <input type="text" id="productSearch" class="form-control"
+                                placeholder="Buscar produto por nome..." onkeyup="filterSearch()"
+                                style="margin-bottom: 12px;">
+                            <div class="cat-scroll-container" id="catButtons">
+                                <!-- Categories rendered by JS Component -->
+                            </div>
                         </div>
                         <!-- Product Grid -->
                         <div class="pos-product-grid" id="productGrid">
@@ -105,6 +108,14 @@
                         <div class="cart-header">
                             <h3><i class="ph ph-shopping-cart"></i> Carrinho</h3>
                             <button class="btn btn-ghost btn-sm" onclick="clearCart()">Limpar</button>
+                        </div>
+
+                        <!-- Customer Select (Direct Mode) -->
+                        <div id="customerSelector" style="padding:10px;border-bottom:1px solid var(--border-light)">
+                            <label class="form-label">Cliente</label>
+                            <select id="customerSelect" class="form-control" style="margin-top:4px">
+                                <option value="">Consumidor (Padrão)</option>
+                            </select>
                         </div>
 
                         <!-- Tab mode: select existing tab -->
@@ -125,8 +136,9 @@
                         <div class="cart-footer">
                             <div class="cart-total"><span class="cart-total-label">Total</span><span
                                     class="cart-total-value" id="cartTotal">R$ 0,00</span></div>
-                            <button class="btn btn-success btn-lg" id="checkoutBtn" onclick="openPayment()"
-                                style="width:100%" disabled><i class="ph ph-check-circle"></i> Finalizar</button>
+                            <button class="btn btn-primary btn-lg" id="checkoutBtn" onclick="handleCheckoutClick()"
+                                style="width:100%; font-size: 16px; padding: 14px" disabled><i class="ph ph-wallet"></i>
+                                Avançar para Pagamento</button>
                         </div>
                     </div>
                 </div>
@@ -168,7 +180,22 @@
     <div class="toast-container" id="toastContainer"></div>
     <script>
         const API = '';
-        let products = [], cart = [], mode = 'direct', selectedPayType = '', openTabs = [];
+        let products = [], cart = [], mode = 'direct', selectedPayType = '', openTabs = [], customers = [], students = [];
+
+        async function loadCustomers() {
+            try {
+                customers = await fetch(`${API}/api/customers`).then(r => r.json());
+                students = await fetch(`${API}/api/students`).then(r => r.json());
+                const sel = document.getElementById('customerSelect');
+                if (sel) {
+                    const custOpts = customers.map(c => `<option value="C_${c.id}">${c.name}</option>`).join('');
+                    const stuOpts = students.map(s => `<option value="S_${s.id}">${s.name}</option>`).join('');
+                    sel.innerHTML = `<option value="">Consumidor (Padrão)</option>
+                                     <optgroup label="Alunos">${stuOpts}</optgroup>
+                                     <optgroup label="Clientes">${custOpts}</optgroup>`;
+                }
+            } catch (e) { console.error('Erro ao listar clientes/alunos', e); }
+        }
 
         function toast(msg, type = 'info') {
             const c = document.getElementById('toastContainer');
@@ -198,6 +225,7 @@
             document.getElementById('modeDirect').className = m === 'direct' ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm';
             document.getElementById('modeTab').className = m === 'tab' ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm';
             document.getElementById('tabSelector').style.display = m === 'tab' ? '' : 'none';
+            document.getElementById('customerSelector').style.display = m === 'tab' ? 'none' : '';
             if (m === 'tab') loadOpenTabs();
         }
 
@@ -209,32 +237,65 @@
             } catch (e) { }
         }
 
+        // UI Components
+        const CategoryFilter = (categories) => {
+            const allBtn = `<button class="btn btn-ghost btn-sm cat-btn active" data-cat="" onclick="filterCat(this,'')">Todos</button>`;
+            const catBtns = categories.map(c =>
+                `<button class="btn btn-ghost btn-sm cat-btn" data-cat="${c}" onclick="filterCat(this,'${c}')">${catIcon(c)} ${c}</button>`
+            ).join('');
+            return allBtn + catBtns;
+        };
+
+        const ProductCard = (p) => {
+            const stockClass = p.stock === 0 ? 'out-of-stock' : p.stock < 5 ? 'low-stock' : '';
+            const stockText = p.stock === 0 ? 'Sem estoque' : p.stock < 5 ? '⚠️ ' + p.stock + ' un.' : p.stock + ' un.';
+
+            return `
+            <div class="product-card ${stockClass}" onclick="addToCart(${p.id})">
+                <div class="pcard-icon">${productEmoji(p.name)}</div>
+                <div class="pcard-name" title="${p.name}">${p.name}</div>
+                <div class="pcard-price">${fmt(p.price)}</div>
+                <div class="pcard-stock">${stockText}</div>
+            </div>`;
+        };
+
         async function loadProducts() {
             try {
                 products = await fetch(`${API}/api/products`).then(r => r.json()).then(d => d.filter(p => p.isActive));
                 // Load categories for filter
                 const cats = [...new Set(products.map(p => p.category?.name || 'Outros').filter(Boolean))];
-                const catDiv = document.getElementById('catButtons');
-                catDiv.innerHTML = cats.map(c => `<button class="btn btn-ghost btn-sm cat-btn" data-cat="${c}" onclick="filterCat(this,'${c}')">${catIcon(c)} ${c}</button>`).join('');
+                document.getElementById('catButtons').innerHTML = CategoryFilter(cats);
                 renderProducts(products);
             } catch (e) { toast('Erro ao carregar produtos', 'error'); }
         }
 
+        let currentCat = '';
         function filterCat(btn, cat) {
-            document.querySelectorAll('.cat-btn').forEach(b => b.className = 'btn btn-ghost btn-sm cat-btn');
-            btn.className = 'btn btn-primary btn-sm cat-btn';
-            renderProducts(cat ? products.filter(p => (p.category?.name || 'Outros') === cat) : products);
+            document.querySelectorAll('.cat-btn').forEach(b => {
+                b.classList.remove('btn-primary');
+                b.classList.remove('active');
+            });
+            btn.classList.add('active');
+            currentCat = cat;
+            applyFilters();
+        }
+
+        function filterSearch() {
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const query = document.getElementById('productSearch').value.toLowerCase();
+            const filtered = products.filter(p => {
+                const matchesCat = currentCat ? (p.category?.name || 'Outros') === currentCat : true;
+                const matchesSearch = p.name.toLowerCase().includes(query);
+                return matchesCat && matchesSearch;
+            });
+            renderProducts(filtered);
         }
 
         function renderProducts(list) {
-            const grid = document.getElementById('productGrid');
-            grid.innerHTML = list.map(p => `
-    <div class="product-card ${p.stock === 0 ? 'out-of-stock' : p.stock < 5 ? 'low-stock' : ''}" onclick="addToCart(${p.id})">
-      <div class="pcard-icon">${productEmoji(p.name)}</div>
-      <div class="pcard-name">${p.name}</div>
-      <div class="pcard-price">${fmt(p.price)}</div>
-      <div class="pcard-stock">${p.stock === 0 ? 'Sem estoque' : p.stock < 5 ? '⚠️ ' + p.stock + ' un.' : p.stock + ' un.'}</div>
-    </div>`).join('');
+            document.getElementById('productGrid').innerHTML = list.map(ProductCard).join('');
         }
 
         function addToCart(productId) {
@@ -258,7 +319,7 @@
 
         function renderCart() {
             const body = document.getElementById('cartBody');
-            if (!cart.length) { body.innerHTML = '<div class="cart-empty"><span style="font-size:32px">🛒</span><span>Carrinho vazio</span></div>'; }
+            if (!cart.length) { body.innerHTML = '<div class="cart-empty"><span style="font-size:32px"><i class="ph ph-shopping-cart"></i></span><span>Carrinho vazio</span><span class="text-muted">Selecione produtos ao lado</span></div>'; }
             else body.innerHTML = cart.map(item => `
     <div class="cart-item">
       <div><div class="cart-item-name">${item.name}</div><div class="cart-item-price">${fmt(item.price)} / un.</div></div>
@@ -273,17 +334,42 @@
             document.getElementById('checkoutBtn').disabled = cart.length === 0;
         }
 
+        function handleCheckoutClick() {
+            if (!cart.length) return;
+            if (mode === 'tab') {
+                confirmTabItems(); // Bypass modal for tabs
+            } else {
+                openPayment(); // Show modal for direct sales
+            }
+        }
+
+        async function confirmTabItems() {
+            const tabId = document.getElementById('tabSelect').value;
+            if (!tabId) { toast('Selecione uma comanda', 'warning'); return; }
+            document.getElementById('checkoutBtn').disabled = true;
+            try {
+                for (const item of cart) {
+                    const res = await fetch(`${API}/api/tabs/${tabId}/items`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId: item.productId, quantity: item.qty }) });
+                    if (!res.ok) { const err = await res.text(); throw new Error(err); }
+                }
+                toast('Itens adicionados à comanda!', 'success');
+                clearCart();
+                loadProducts();
+            } catch (err) {
+                toast('Erro: ' + err.message, 'error');
+            } finally {
+                document.getElementById('checkoutBtn').disabled = false;
+            }
+        }
+
         function openPayment() {
             if (!cart.length) return;
             const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
             document.getElementById('payTotal').textContent = fmt(total);
-            document.getElementById('paymentTitle').textContent = mode === 'tab' ? 'Adicionar à Comanda' : 'Finalizar Venda';
+            document.getElementById('paymentTitle').textContent = 'Finalizar Venda';
             selectedPayType = ''; document.getElementById('confirmPayBtn').disabled = true;
             document.querySelectorAll('.pay-type').forEach(b => b.classList.remove('btn-primary'));
             document.getElementById('paymentModal').classList.add('open');
-            if (mode === 'tab') {
-                document.querySelector('.pay-type[data-pay="Dinheiro"]').click(); // auto-select for tab
-            }
         }
         function closePayment() { document.getElementById('paymentModal').classList.remove('open'); }
 
@@ -297,21 +383,18 @@
         async function confirmPayment() {
             document.getElementById('confirmPayBtn').disabled = true;
             try {
-                if (mode === 'tab') {
-                    const tabId = document.getElementById('tabSelect').value;
-                    if (!tabId) { toast('Selecione uma comanda', 'warning'); document.getElementById('confirmPayBtn').disabled = false; return; }
-                    // Add each item to tab
-                    for (const item of cart) {
-                        const res = await fetch(`${API}/api/tabs/${tabId}/items`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId: item.productId, quantity: item.qty }) });
-                        if (!res.ok) { const err = await res.text(); throw new Error(err); }
-                    }
-                    toast('Itens adicionados à comanda!', 'success');
-                } else {
-                    const body = { paymentType: selectedPayType, items: cart.map(i => ({ productId: i.productId, quantity: i.qty, unitPrice: i.price })) };
-                    const res = await fetch(`${API}/api/sales`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-                    if (!res.ok) throw new Error(await res.text());
-                    toast('Venda registrada com sucesso! ✅', 'success');
+                const selection = document.getElementById('customerSelect').value;
+                const body = { paymentType: selectedPayType, items: cart.map(i => ({ productId: i.productId, quantity: i.qty, unitPrice: i.price })) };
+
+                if (selection) {
+                    if (selection.startsWith('S_')) body.studentId = parseInt(selection.replace('S_', ''));
+                    else if (selection.startsWith('C_')) body.customerId = parseInt(selection.replace('C_', ''));
                 }
+
+                const res = await fetch(`${API}/api/sales`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                if (!res.ok) throw new Error(await res.text());
+                toast('Venda registrada com sucesso! ✅', 'success');
+
                 closePayment(); clearCart();
                 // refresh product stock counts
                 loadProducts();
@@ -319,6 +402,7 @@
         }
 
         loadProducts();
+        loadCustomers();
     </script>
 </body>
 

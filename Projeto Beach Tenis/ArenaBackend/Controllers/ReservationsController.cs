@@ -1,5 +1,6 @@
 using ArenaBackend.Data;
 using ArenaBackend.Models;
+using ArenaBackend.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,11 +19,28 @@ namespace ArenaBackend.Controllers
 
         // GET: api/Reservations
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Reservation>>> GetReservations()
+        public async Task<ActionResult<IEnumerable<Reservation>>> GetReservations(
+            [FromQuery] string? startDate = null,
+            [FromQuery] string? endDate = null,
+            [FromQuery] int? courtId = null)
         {
-            return await _context.Reservations
-                .Include(r => r.Court)
-                .ToListAsync();
+            var query = _context.Reservations.Include(r => r.Court).AsQueryable();
+
+            if (!string.IsNullOrEmpty(startDate) && DateTime.TryParse(startDate, out var start))
+            {
+                query = query.Where(r => r.ReservationDate >= start.Date);
+            }
+            if (!string.IsNullOrEmpty(endDate) && DateTime.TryParse(endDate, out var end))
+            {
+                query = query.Where(r => r.ReservationDate <= end.Date);
+            }
+            if (courtId.HasValue)
+            {
+                query = query.Where(r => r.CourtId == courtId.Value);
+            }
+
+            var results = await query.ToListAsync();
+            return Ok(results);
         }
 
         // GET: api/Reservations/5
@@ -104,6 +122,23 @@ namespace ArenaBackend.Controllers
                 return NotFound();
             }
 
+            // Refund if paid
+            if (reservation.Status == "Finalizado")
+            {
+                var openRegister = await _context.CashRegisters.FirstOrDefaultAsync(cr => cr.Status == "Open");
+                if (openRegister != null)
+                {
+                    _context.CashTransactions.Add(new CashTransaction
+                    {
+                        CashRegisterId = openRegister.Id,
+                        Type = "Adjustment",
+                        Amount = -reservation.Price,
+                        Description = $"Cancelamento: Agendamento Pago #{reservation.Id} - {reservation.CustomerName}",
+                        CreatedAt = DateTime.Now
+                    });
+                }
+            }
+
             _context.Reservations.Remove(reservation);
             await _context.SaveChangesAsync();
 
@@ -113,6 +148,37 @@ namespace ArenaBackend.Controllers
         private bool ReservationExists(int id)
         {
             return _context.Reservations.Any(e => e.Id == id);
+        }
+
+        // POST: api/Reservations/{id}/checkout
+        [HttpPost("{id}/checkout")]
+        public async Task<IActionResult> CheckoutReservation(int id, [FromBody] CheckoutDto dto)
+        {
+            var reservation = await _context.Reservations.FindAsync(id);
+            if (reservation == null) return NotFound("Reserva não encontrada.");
+
+            if (reservation.Status == "Finalizado") return BadRequest("Esta reserva já foi finalizada/paga.");
+
+            // Update Reservation Status
+            reservation.Status = "Finalizado";
+            reservation.PaymentType = dto.PaymentType;
+
+            // Register in CashFlow if Open
+            var openRegister = await _context.CashRegisters.FirstOrDefaultAsync(cr => cr.Status == "Open");
+            if (openRegister != null)
+            {
+                _context.CashTransactions.Add(new CashTransaction
+                {
+                    CashRegisterId = openRegister.Id,
+                    Type = "Service",
+                    Amount = reservation.Price,
+                    Description = $"Agendamento #{reservation.Id} - {reservation.CustomerName} ({dto.PaymentType})",
+                    CreatedAt = DateTime.Now
+                });
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Pagamento registrado com sucesso", reservation });
         }
 
         private async Task<bool> HasConflict(int courtId, DateTime date, TimeSpan startTime, TimeSpan endTime, int? excludeId = null)

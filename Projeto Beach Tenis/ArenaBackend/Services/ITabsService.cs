@@ -12,5 +12,6 @@ namespace ArenaBackend.Services
         Task<string> AddItemAsync(int id, AddTabItemDto dto);
         Task<string> RemoveItemAsync(int id, int itemId);
         Task<object> CloseTabAsync(int id, CloseTabDto dto);
+        Task<string> CancelTabAsync(int id, CancelActionDto dto);
     }
 }

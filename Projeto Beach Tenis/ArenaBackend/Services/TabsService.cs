@@ -200,5 +200,66 @@ namespace ArenaBackend.Services
 
             return new { saleId = sale.Id, total = sale.TotalAmount };
         }
+
+        public async Task<string> CancelTabAsync(int id, CancelActionDto dto)
+        {
+            var tab = await _context.Tabs
+                .Include(t => t.Items).ThenInclude(i => i.Product)
+                .FirstOrDefaultAsync(t => t.Id == id);
+
+            if (tab == null) throw new InvalidOperationException("Comanda não encontrada.");
+            if (tab.Status == "Cancelled") throw new InvalidOperationException("Comanda já está cancelada.");
+
+            // Restore stock
+            foreach (var item in tab.Items)
+            {
+                if (item.Product != null)
+                {
+                    item.Product.Stock += item.Quantity;
+                }
+            }
+
+            // Attempt to void sale & register negative adjustment
+            if (tab.SaleId.HasValue)
+            {
+                var sale = await _context.Sales
+                    .Include(s => s.Items)
+                    .FirstOrDefaultAsync(s => s.Id == tab.SaleId.Value);
+
+                if (sale != null)
+                {
+                    var openRegister = await _context.CashRegisters.FirstOrDefaultAsync(cr => cr.Status == "Open");
+                    if (openRegister != null)
+                    {
+                        _context.CashTransactions.Add(new CashTransaction
+                        {
+                            CashRegisterId = openRegister.Id,
+                            Type = "Adjustment",
+                            Amount = -sale.TotalAmount,
+                            Description = $"Cancelamento: Comanda #{tab.Id} / Venda #{sale.Id} - Motivo: {dto.Reason} ({dto.CancelledBy})",
+                            CreatedAt = DateTime.Now
+                        });
+                    }
+                    // Unlink old cash transactions to prevent FK constraint error
+                    var linkedTransactions = await _context.CashTransactions.Where(ct => ct.SaleId == sale.Id).ToListAsync();
+                    foreach (var tx in linkedTransactions)
+                    {
+                        tx.SaleId = null;
+                    }
+
+                    // Explicitly remove sale items to avoid foreign key constraint error (cascade delete)
+                    _context.SaleItems.RemoveRange(sale.Items);
+
+                    _context.Sales.Remove(sale);
+                }
+                tab.SaleId = null;
+            }
+
+            tab.Status = "Cancelled";
+            tab.ClosedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+            return "Comanda cancelada com sucesso.";
+        }
     }
 }

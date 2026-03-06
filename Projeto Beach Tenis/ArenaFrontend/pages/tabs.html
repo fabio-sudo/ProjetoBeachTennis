@@ -100,6 +100,7 @@
                                     <th>Fechamento</th>
                                     <th>Total</th>
                                     <th>Venda</th>
+                                    <th>Ações</th>
                                 </tr>
                             </thead>
                             <tbody id="closedTabsTable">
@@ -166,6 +167,27 @@
         </div>
     </div>
 
+    <!-- Cancel Tab Modal -->
+    <div class="modal-overlay" id="cancelTabModal">
+        <div class="modal" style="max-width:400px">
+            <div class="modal-header"><span class="modal-title" style="color:var(--danger)">Cancelar
+                    Comanda</span><button class="modal-close"
+                    onclick="document.getElementById('cancelTabModal').classList.remove('open')">✕</button></div>
+            <div style="margin-bottom:16px;">
+                <p>Tem certeza que deseja cancelar esta comanda e estornar o estoque?</p>
+            </div>
+            <div class="form-group"><label class="form-label">Motivo do Cancelamento</label>
+                <input id="tabCancelReason" class="form-control" placeholder="Ex: Lançamento duplicado..." required>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-ghost"
+                    onclick="document.getElementById('cancelTabModal').classList.remove('open')">Manter Comanda</button>
+                <button class="btn btn-danger" id="confirmCancelBtn" onclick="confirmCancelTab()">Confirmar
+                    Cancelamento</button>
+            </div>
+        </div>
+    </div>
+
     <div class="toast-container" id="toastContainer"></div>
     <script>
         const API = '';
@@ -192,12 +214,15 @@
       </div>`).join('');
                 const tbody = document.getElementById('closedTabsTable');
                 if (!closed.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted)">Nenhuma comanda fechada hoje</td></tr>'; }
-                else tbody.innerHTML = closed.slice(0, 20).map(t => `<tr>
+                else tbody.innerHTML = closed.slice(0, 20).map(t => `<tr style="cursor:pointer; transition:background 0.15s" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background=''" onclick="if(!event.target.closest('.no-row-click')) showTab(${t.id})">
       <td>#${t.id}</td><td>${t.customerName}</td>
       <td>${new Date(t.openedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td>
       <td>${t.closedAt ? new Date(t.closedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '–'}</td>
       <td style="font-weight:600;color:var(--green)">${fmt(t.total)}</td>
       <td>${t.saleId ? '<span class="badge badge-blue">Venda #' + t.saleId + '</span>' : '–'}</td>
+      <td class="no-row-click">
+        ${t.status !== 'Cancelled' ? `<button class="btn btn-ghost btn-sm" style="color:var(--danger)" onclick="openCancelTab(${t.id})" title="Cancelar Comanda"><i class="ph ph-trash"></i></button>` : `<span class="badge badge-gray">Cancelada</span>`}
+      </td>
     </tr>`).join('');
             } catch (e) { toast('Erro ao carregar comandas', 'error'); }
         }
@@ -209,15 +234,18 @@
                 document.getElementById('tabDetailCard').innerHTML = `
       <div class="flex justify-between items-center mb-4">
         <div><div style="font-weight:700;font-size:16px">Comanda #${t.id} ${t.tableNumber ? '– ' + t.tableNumber : ''}</div><div style="font-size:12px;color:var(--text-muted)">${t.customerName} · Aberta ${new Date(t.openedAt).toLocaleTimeString('pt-BR')}</div></div>
-        <button class="btn btn-danger btn-sm" onclick="openCloseTab(${t.id},${t.total || 0})">Fechar Comanda</button>
+        <div>
+            ${t.status === 'Open' ? `<button class="btn btn-danger btn-sm" onclick="openCloseTab(${t.id},${t.total || 0})">Fechar Comanda</button>` : ''}
+            ${t.status !== 'Cancelled' ? `<button class="btn btn-ghost btn-sm" style="color:var(--danger)" onclick="openCancelTab(${t.id})">Cancelar</button>` : `<span class="badge badge-gray">Cancelada</span>`}
+        </div>
       </div>
       <div class="table-wrap">
         <table>
           <thead><tr><th>Produto</th><th>Qtd</th><th>Unitário</th><th>Subtotal</th><th></th></tr></thead>
           <tbody>${t.items.map(i => `<tr>
-            <td style="font-weight:500;color:var(--text-primary)">${i.productName}</td>
+            <td style="font-weight:500;color:var(--text-primary); ${t.status === 'Cancelled' ? 'text-decoration:line-through' : ''}">${i.productName}</td>
             <td>${i.quantity}</td><td>${fmt(i.unitPrice)}</td><td style="color:var(--green)">${fmt(i.subtotal)}</td>
-            <td><button class="btn btn-danger btn-sm" onclick="removeItem(${t.id},${i.id})"><i class="ph ph-trash"></i></button></td>
+            <td>${t.status === 'Open' ? `<button class="btn btn-danger btn-sm" onclick="removeItem(${t.id},${i.id})"><i class="ph ph-trash"></i></button>` : ''}</td>
           </tr>`).join('')}</tbody>
         </table>
       </div>
@@ -243,16 +271,34 @@
         async function loadCustomers() {
             try {
                 const custs = await fetch(`${API}/api/customers`).then(r => r.json());
+                const stus = await fetch(`${API}/api/students`).then(r => r.json());
                 const sel = document.getElementById('tabCustomer');
-                sel.innerHTML = '<option value="">Anônimo</option>' + custs.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-            } catch (e) { }
+
+                const custOpts = custs.map(c => `<option value="C_${c.id}">${c.name}</option>`).join('');
+                const stuOpts = stus.map(s => `<option value="S_${s.id}">${s.name}</option>`).join('');
+
+                sel.innerHTML = `<option value="">Anônimo</option>
+                                 <optgroup label="Alunos">${stuOpts}</optgroup>
+                                 <optgroup label="Clientes">${custOpts}</optgroup>`;
+            } catch (e) { console.error(e); }
         }
 
         async function createTab() {
             const tableNum = document.getElementById('tabTableNum').value;
-            const custId = document.getElementById('tabCustomer').value;
+            const selection = document.getElementById('tabCustomer').value;
+
+            const payload = { tableNumber: tableNum || null };
+            if (selection) {
+                if (selection.startsWith('S_')) payload.studentId = parseInt(selection.replace('S_', ''));
+                else if (selection.startsWith('C_')) payload.customerId = parseInt(selection.replace('C_', ''));
+            }
+
             try {
-                const res = await fetch(`${API}/api/tabs`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customerId: custId || null, tableNumber: tableNum || null }) });
+                const res = await fetch(`${API}/api/tabs`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
                 if (!res.ok) throw new Error(await res.text());
                 toast('Comanda aberta!', 'success');
                 document.getElementById('newTabModal').classList.remove('open');
@@ -284,6 +330,32 @@
                 selectedTabId = null; loadTabs();
                 document.getElementById('tabDetailCard').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)"><div style="font-size:40px">📋</div><div>Selecione uma comanda para ver detalhes</div></div>';
             } catch (e) { toast('Erro: ' + e.message, 'error'); document.getElementById('confirmCloseBtn').disabled = false; }
+        }
+
+        function openCancelTab(id) {
+            selectedTabId = id;
+            document.getElementById('tabCancelReason').value = '';
+            document.getElementById('cancelTabModal').classList.add('open');
+        }
+
+        async function confirmCancelTab() {
+            const reason = document.getElementById('tabCancelReason').value;
+            if (!reason) { toast('Informe o motivo', 'warning'); return; }
+            document.getElementById('confirmCancelBtn').disabled = true;
+            try {
+                const payload = { reason, cancelledBy: 'Admin' };
+                const res = await fetch(`${API}/api/tabs/${selectedTabId}/cancel`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error(await res.text());
+                toast('Comanda cancelada e estoque estornado.', 'success');
+                document.getElementById('cancelTabModal').classList.remove('open');
+                loadTabs(); showTab(selectedTabId);
+            } catch (e) { toast('Erro: ' + e.message, 'error'); } finally {
+                document.getElementById('confirmCancelBtn').disabled = false;
+            }
         }
 
         loadTabs();

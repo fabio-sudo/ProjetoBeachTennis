@@ -32,8 +32,8 @@
                 </div>
                 <div class="nav-section">
                     <div class="nav-section-label">Quadras</div>
-                    <a href="courts.html" class="nav-item"><span class="nav-icon"><i
-                                class="ph ph-tennis-court"></i></span> Quadras</a>
+                    <a href="courts.html" class="nav-item"><span class="nav-icon"><i class="ph ph-map-pin"></i></span>
+                        Quadras</a>
                     <a href="schedule.html" class="nav-item active"><span class="nav-icon"><i
                                 class="ph ph-calendar-check"></i></span> Agendamentos</a>
                 </div>
@@ -78,8 +78,11 @@
             <div class="page-content">
                 <div class="card mb-4">
                     <div class="filter-bar">
-                        <label class="form-label" style="white-space:nowrap">Data:</label>
-                        <input type="date" id="filterDate" class="form-control" style="width:auto"
+                        <label class="form-label" style="white-space:nowrap">Período:</label>
+                        <input type="date" id="filterStartDate" class="form-control" style="width:auto"
+                            onchange="loadReservations()">
+                        <label class="form-label" style="white-space:nowrap">até</label>
+                        <input type="date" id="filterEndDate" class="form-control" style="width:auto"
                             onchange="loadReservations()">
                         <select id="filterCourt" class="form-control" style="width:auto" onchange="loadReservations()">
                             <option value="">Todas as Quadras</option>
@@ -99,8 +102,8 @@
                                 <tr>
                                     <th>Quadra</th>
                                     <th>Cliente</th>
-                                    <th>Início</th>
-                                    <th>Fim</th>
+                                    <th>Horário</th>
+                                    <th>Status</th>
                                     <th>Preço</th>
                                     <th>Ações</th>
                                 </tr>
@@ -168,6 +171,33 @@
         </div>
     </div>
 
+    <!-- Finalize Reservation Modal -->
+    <div class="modal-overlay" id="checkoutResModal">
+        <div class="modal" style="max-width:400px">
+            <div class="modal-header"><span class="modal-title">Finalizar Agendamento</span><button class="modal-close"
+                    onclick="document.getElementById('checkoutResModal').classList.remove('open')">✕</button></div>
+            <p style="color:var(--text-secondary);margin-bottom:20px">Selecione a forma de pagamento para registrar no
+                Caixa Diário.</p>
+
+            <input type="hidden" id="checkoutResId">
+            <div class="form-group"><label class="form-label">Forma de Pagamento</label>
+                <select id="checkoutPaymentType" class="form-control" required>
+                    <option value="Dinheiro">Dinheiro</option>
+                    <option value="Cartão Crédito">Cartão Crédito</option>
+                    <option value="Cartão Débito">Cartão Débito</option>
+                    <option value="PIX">PIX</option>
+                </select>
+            </div>
+
+            <div class="form-actions mt-4">
+                <button class="btn btn-ghost"
+                    onclick="document.getElementById('checkoutResModal').classList.remove('open')">Cancelar</button>
+                <button class="btn btn-success" id="confirmCheckoutResBtn" onclick="confirmCheckoutRes()">Confirmar e
+                    Pagar</button>
+            </div>
+        </div>
+    </div>
+
     <div class="toast-container" id="toastContainer"></div>
     <script>
         const API = '';
@@ -177,7 +207,12 @@
         function openSidebar() { document.getElementById('sidebar').classList.add('mobile-open'); document.getElementById('sidebarOverlay').classList.add('visible'); }
         function closeSidebar() { document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('sidebarOverlay').classList.remove('visible'); }
 
-        function goToday() { document.getElementById('filterDate').value = new Date().toISOString().slice(0, 10); loadReservations(); }
+        function goToday() {
+            const today = new Date().toISOString().slice(0, 10);
+            document.getElementById('filterStartDate').value = today;
+            document.getElementById('filterEndDate').value = today;
+            loadReservations();
+        }
 
         async function init() {
             try {
@@ -192,12 +227,24 @@
         }
 
         async function loadReservations() {
-            const date = document.getElementById('filterDate').value;
+            const startDate = document.getElementById('filterStartDate').value;
+            const endDate = document.getElementById('filterEndDate').value;
             const courtId = document.getElementById('filterCourt').value;
-            document.getElementById('scheduleTitle').textContent = date ? `Reservas – ${new Date(date + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })}` : 'Reservas';
+
+            let title = 'Reservas';
+            if (startDate && endDate) {
+                if (startDate === endDate) {
+                    title = `Reservas – ${new Date(startDate + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })}`;
+                } else {
+                    title = `Reservas – ${new Date(startDate + 'T12:00:00').toLocaleDateString('pt-BR')} até ${new Date(endDate + 'T12:00:00').toLocaleDateString('pt-BR')}`;
+                }
+            }
+            document.getElementById('scheduleTitle').textContent = title;
+
             try {
                 const qs = new URLSearchParams();
-                if (date) qs.set('date', date);
+                if (startDate) qs.set('startDate', startDate);
+                if (endDate) qs.set('endDate', endDate);
                 if (courtId) qs.set('courtId', courtId);
                 reservations = await fetch(`${API}/api/reservations?${qs}`).then(r => r.json());
                 renderReservations();
@@ -212,15 +259,23 @@
             const sorted = [...reservations].sort((a, b) => a.startTime.localeCompare(b.startTime));
             tbody.innerHTML = sorted.map(r => {
                 const court = courts.find(c => c.id === r.courtId);
+                const isPaid = r.status === 'Finalizado';
+                const statusBadge = isPaid ? `<span class="badge badge-green">Pago</span>` : `<span class="badge badge-orange">Pendente</span>`;
+                const actionBtns = isPaid ?
+                    `<button class="btn btn-ghost btn-sm" disabled><i class="ph ph-check"></i></button>
+                     <button class="btn btn-danger btn-sm" onclick="confirmDelete(${r.id})" title="Cancelar Agendamento Pago"><i class="ph ph-trash"></i></button>` :
+                    `<button class="btn btn-success btn-sm" onclick="openCheckoutModal(${r.id})" title="Pagar e Finalizar"><i class="ph ph-currency-dollar"></i></button>
+                   <button class="btn btn-ghost btn-sm" onclick="openModal(${r.id})" title="Editar"><i class="ph ph-pencil"></i></button>
+                   <button class="btn btn-danger btn-sm" onclick="confirmDelete(${r.id})" title="Cancelar"><i class="ph ph-trash"></i></button>`;
+
                 return `<tr>
       <td><span class="badge badge-${sportColors[court?.sportType] || 'blue'}">${court?.name || r.courtId}</span></td>
       <td style="font-weight:600;color:var(--text-primary)">${r.customerName}</td>
-      <td>${r.startTime?.slice(0, 5)}</td>
-      <td>${r.endTime?.slice(0, 5)}</td>
+      <td>${r.startTime?.slice(0, 5)} - ${r.endTime?.slice(0, 5)}</td>
+      <td>${statusBadge}</td>
       <td style="color:var(--green);font-weight:600">${fmt(r.price)}</td>
       <td class="flex gap-2">
-        <button class="btn btn-ghost btn-sm" onclick="openModal(${r.id})"><i class="ph ph-pencil"></i></button>
-        <button class="btn btn-danger btn-sm" onclick="confirmDelete(${r.id})"><i class="ph ph-trash"></i></button>
+        ${actionBtns}
       </td>
     </tr>`;
             }).join('');
@@ -231,7 +286,7 @@
             document.getElementById('resModalTitle').textContent = id ? 'Editar Reserva' : 'Nova Reserva';
             const rCourt = document.getElementById('rCourt');
             rCourt.innerHTML = '<option value="">Selecionar...</option>' + courts.map(c => `<option value="${c.id}">${c.name} (${c.sportType})</option>`).join('');
-            const today = document.getElementById('filterDate').value || new Date().toISOString().slice(0, 10);
+            const today = document.getElementById('filterStartDate').value || new Date().toISOString().slice(0, 10);
             document.getElementById('rDate').value = today;
             document.getElementById('rCourt').value = ''; document.getElementById('rCustomer').value = ''; document.getElementById('rStart').value = ''; document.getElementById('rEnd').value = ''; document.getElementById('rPrice').value = '';
             if (id) {
@@ -268,6 +323,39 @@
             try { await fetch(`${API}/api/reservations/${deleteId}`, { method: 'DELETE' }); toast('Reserva cancelada.', 'success'); document.getElementById('confirmOverlay').classList.remove('open'); loadReservations(); }
             catch (e) { toast('Erro ao cancelar', 'error'); }
         }
+
+        // Checkout logic
+        function openCheckoutModal(id) {
+            document.getElementById('checkoutResId').value = id;
+            document.getElementById('checkoutPaymentType').value = 'Dinheiro';
+            document.getElementById('checkoutResModal').classList.add('open');
+        }
+
+        async function confirmCheckoutRes() {
+            const id = document.getElementById('checkoutResId').value;
+            const paymentType = document.getElementById('checkoutPaymentType').value;
+            if (!id || !paymentType) return;
+
+            document.getElementById('confirmCheckoutResBtn').disabled = true;
+            try {
+                const payload = { paymentType: paymentType };
+                const res = await fetch(`${API}/api/reservations/${id}/checkout`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error(await res.text());
+
+                toast('Pagamento registrado e agendamento finalizado!', 'success');
+                document.getElementById('checkoutResModal').classList.remove('open');
+                loadReservations();
+            } catch (err) {
+                toast('Erro: ' + err.message, 'error');
+            } finally {
+                document.getElementById('confirmCheckoutResBtn').disabled = false;
+            }
+        }
+
         init();
     </script>
 </body>

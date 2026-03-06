@@ -33,7 +33,7 @@
                 <div class="nav-section">
                     <div class="nav-section-label">Quadras</div>
                     <a href="courts.html" class="nav-item"><span class="nav-icon"><i
-                                class="ph ph-tennis-court"></i></span> Quadras</a>
+                                class="ph ph-map-pin"></i></span> Quadras</a>
                     <a href="schedule.html" class="nav-item"><span class="nav-icon"><i
                                 class="ph ph-calendar-check"></i></span> Agendamentos</a>
                 </div>
@@ -114,6 +114,27 @@
         </div>
     </div>
 
+    <!-- Cancel Sale Item Modal -->
+    <div class="modal-overlay" id="cancelSaleItemModal" style="z-index: 300;">
+        <div class="modal" style="max-width:400px">
+            <div class="modal-header"><span class="modal-title" style="color:var(--danger)">Cancelar Item</span><button
+                    class="modal-close"
+                    onclick="document.getElementById('cancelSaleItemModal').classList.remove('open')">✕</button></div>
+            <div style="margin-bottom:16px;">
+                <p id="cancelSaleItemText">Tem certeza que deseja cancelar este item?</p>
+            </div>
+            <div class="form-group"><label class="form-label">Motivo do Cancelamento</label>
+                <input id="saleItemCancelReason" class="form-control" placeholder="Ex: Produto defeituoso..." required>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-ghost"
+                    onclick="document.getElementById('cancelSaleItemModal').classList.remove('open')">Voltar</button>
+                <button class="btn btn-danger" id="confirmCancelSaleItemBtn" onclick="confirmCancelSaleItem()">Confirmar
+                    Cancelamento</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Sale Detail Modal -->
     <div class="modal-overlay" id="saleDetailModal">
         <div class="modal">
@@ -134,8 +155,9 @@
         function openSidebar() { document.getElementById('sidebar').classList.add('mobile-open'); document.getElementById('sidebarOverlay').classList.add('visible'); }
         function closeSidebar() { document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('sidebarOverlay').classList.remove('visible'); }
 
-        // default date range to today
-        const today = new Date().toISOString().slice(0, 10);
+        // default date range to today (local timezone)
+        const tzOffset = (new Date()).getTimezoneOffset() * 60000;
+        const today = new Date(Date.now() - tzOffset).toISOString().slice(0, 10);
         document.getElementById('dateFrom').value = today;
         document.getElementById('dateTo').value = today;
 
@@ -174,8 +196,8 @@
       <span class="badge ${payBadge[s.paymentType] || 'badge-gray'}">${s.paymentType}</span>
     </div>
     <div class="table-wrap mb-4">
-      <table><thead><tr><th>Produto</th><th>Qtd</th><th>Unitário</th><th>Subtotal</th></tr></thead>
-        <tbody>${(s.items || []).map(i => `<tr><td>${i.product?.name || '–'}</td><td>${i.quantity}</td><td>${fmt(i.unitPrice)}</td><td style="color:var(--green)">${fmt(i.unitPrice * i.quantity)}</td></tr>`).join('')}</tbody>
+      <table><thead><tr><th>Produto</th><th>Qtd</th><th>Unitário</th><th>Subtotal</th><th></th></tr></thead>
+        <tbody>${(s.items || []).map(i => `<tr><td>${i.product?.name || '–'}</td><td>${i.quantity}</td><td>${fmt(i.unitPrice)}</td><td style="color:var(--green)">${fmt(i.unitPrice * i.quantity)}</td><td><button class="btn btn-ghost btn-sm" style="color:var(--danger);padding:4px" onclick="cancelSaleItem(${s.id}, ${i.id}, '${i.product?.name || 'Item'}')" title="Cancelar Item"><i class="ph ph-x-circle"></i></button></td></tr>`).join('')}</tbody>
       </table>
     </div>
     <div class="flex justify-between" style="border-top:1px solid var(--border);padding-top:14px">
@@ -183,6 +205,44 @@
     </div>`;
             document.getElementById('saleDetailModal').classList.add('open');
         }
+
+        let itemToCancel = null;
+
+        function cancelSaleItem(saleId, itemId, itemName) {
+            itemToCancel = { saleId, itemId };
+            document.getElementById('cancelSaleItemText').textContent = `Cancelar item "${itemName}" da Venda #${saleId}?`;
+            document.getElementById('saleItemCancelReason').value = '';
+            document.getElementById('cancelSaleItemModal').classList.add('open');
+        }
+
+        async function confirmCancelSaleItem() {
+            if (!itemToCancel) return;
+            const reason = document.getElementById('saleItemCancelReason').value;
+            if (!reason) { toast('Informe o motivo do cancelamento', 'warning'); return; }
+
+            document.getElementById('confirmCancelSaleItemBtn').disabled = true;
+            try {
+                const payload = { reason, cancelledBy: 'Admin' };
+                const res = await fetch(`${API}/api/sales/${itemToCancel.saleId}/items/${itemToCancel.itemId}/cancel`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error(await res.text());
+                const data = await res.json();
+                toast(`Item cancelado! Restituído: ${fmt(data.refund)}`, 'success');
+
+                document.getElementById('cancelSaleItemModal').classList.remove('open');
+                // Refresh data
+                await loadSales();
+                showSaleDetail(itemToCancel.saleId);
+            } catch (e) {
+                toast('Erro: ' + e.message, 'error');
+            } finally {
+                document.getElementById('confirmCancelSaleItemBtn').disabled = false;
+            }
+        }
+
         loadSales();
     </script>
 </body>

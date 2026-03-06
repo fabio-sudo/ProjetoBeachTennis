@@ -32,8 +32,8 @@
                 </div>
                 <div class="nav-section">
                     <div class="nav-section-label">Quadras</div>
-                    <a href="courts.html" class="nav-item"><span class="nav-icon"><i
-                                class="ph ph-tennis-court"></i></span> Quadras</a>
+                    <a href="courts.html" class="nav-item"><span class="nav-icon"><i class="ph ph-map-pin"></i></span>
+                        Quadras</a>
                     <a href="schedule.html" class="nav-item"><span class="nav-icon"><i
                                 class="ph ph-calendar-check"></i></span> Agendamentos</a>
                 </div>
@@ -70,6 +70,10 @@
                 <div class="flex items-center gap-3">
                     <button class="mobile-toggle" onclick="openSidebar()">☰</button>
                     <h1>Caixa Diário</h1>
+                </div>
+                <div class="topbar-right">
+                    <a href="cash_history.html" class="btn btn-ghost btn-sm"><i class="ph ph-list-numbers"></i> Ver
+                        Histórico</a>
                 </div>
             </header>
             <div class="page-content">
@@ -183,7 +187,8 @@
 
         async function load() {
             try {
-                currentRegister = await fetch(`${API}/api/cashregister/current`).then(r => r.json());
+                const res = await fetch(`${API}/api/cashregister/current`);
+                currentRegister = res.status === 204 ? null : await res.json();
                 if (currentRegister) {
                     // Open
                     document.getElementById('crBanner').className = 'cr-status-banner open';

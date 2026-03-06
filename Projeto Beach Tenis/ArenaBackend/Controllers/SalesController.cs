@@ -1,5 +1,6 @@
 using ArenaBackend.Data;
 using ArenaBackend.Models;
+using ArenaBackend.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -82,10 +83,13 @@ namespace ArenaBackend.Controllers
             if (!sale.CustomerId.HasValue && !sale.StudentId.HasValue)
             {
                 var defaultCustomer = await _context.Customers.FirstOrDefaultAsync(c => c.Name == "Consumidor");
-                if (defaultCustomer != null)
+                if (defaultCustomer == null)
                 {
-                    sale.CustomerId = defaultCustomer.Id;
+                    defaultCustomer = new Customer { Name = "Consumidor", Phone = "-" };
+                    _context.Customers.Add(defaultCustomer);
+                    await _context.SaveChangesAsync();
                 }
+                sale.CustomerId = defaultCustomer.Id;
             }
 
             _context.Sales.Add(sale);
@@ -137,6 +141,111 @@ namespace ArenaBackend.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        // POST: /api/orders/{id}/cancel
+        [HttpPost("/api/orders/{id}/cancel")]
+        public async Task<IActionResult> CancelOrder(int id)
+        {
+            var sale = await _context.Sales
+                .Include(s => s.Items).ThenInclude(i => i.Product)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (sale == null) return NotFound("Venda/Pedido não encontrado.");
+            if (sale.Status == "Cancelled") return BadRequest("Este pedido já está cancelado.");
+
+            // Restore stock
+            foreach (var item in sale.Items)
+            {
+                if (item.Product != null)
+                {
+                    item.Product.Stock += item.Quantity;
+                }
+            }
+
+            sale.Status = "Cancelled";
+
+            // If the register is open, log the reversal
+            var openRegister = await _context.CashRegisters.FirstOrDefaultAsync(cr => cr.Status == "Open");
+            if (openRegister != null)
+            {
+                _context.CashTransactions.Add(new CashTransaction
+                {
+                    CashRegisterId = openRegister.Id,
+                    Type = "Adjustment",
+                    Amount = -sale.TotalAmount,
+                    Description = $"Cancelamento: Venda #{sale.Id}",
+                    CreatedAt = DateTime.Now
+                });
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Pedido cancelado com sucesso. Estoque restaurado e valor estornado no caixa." });
+        }
+
+        // POST: api/Sales/{id}/items/{itemId}/cancel
+        [HttpPost("{id}/items/{itemId}/cancel")]
+        public async Task<IActionResult> CancelSaleItem(int id, int itemId, [FromBody] CancelActionDto dto)
+        {
+            var sale = await _context.Sales
+                .Include(s => s.Items).ThenInclude(i => i.Product)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (sale == null) return NotFound("Venda não encontrada.");
+
+            var item = sale.Items.FirstOrDefault(i => i.Id == itemId);
+            if (item == null) return NotFound("Item não encontrado nesta venda.");
+
+            // Restore stock
+            if (item.Product != null)
+            {
+                item.Product.Stock += item.Quantity;
+            }
+
+            var amountToRefund = item.UnitPrice * item.Quantity;
+            sale.TotalAmount -= amountToRefund;
+
+            var openRegister = await _context.CashRegisters.FirstOrDefaultAsync(cr => cr.Status == "Open");
+            if (openRegister != null)
+            {
+                _context.CashTransactions.Add(new CashTransaction
+                {
+                    CashRegisterId = openRegister.Id,
+                    Type = "Adjustment",
+                    Amount = -amountToRefund,
+                    Description = $"Cancelamento: Venda #{sale.Id} Item '{item.Product?.Name}' - Motivo: {dto.Reason} ({dto.CancelledBy})",
+                    CreatedAt = DateTime.Now
+                });
+            }
+
+            _context.Remove(item);
+
+            // If this was the last item, delete the entire sale
+            if (sale.Items.Count <= 1)
+            {
+                // First check if a Tab references this Sale and unlink/cancel it to prevent FK constraint error
+                var linkedTab = await _context.Tabs.FirstOrDefaultAsync(t => t.SaleId == sale.Id);
+                if (linkedTab != null)
+                {
+                    linkedTab.SaleId = null;
+                    linkedTab.Status = "Cancelled";
+                }
+
+                // Unlink CashTransactions to prevent FK constraint error
+                var linkedTransactions = await _context.CashTransactions.Where(ct => ct.SaleId == sale.Id).ToListAsync();
+                foreach (var tx in linkedTransactions)
+                {
+                    tx.SaleId = null;
+                }
+
+                _context.Sales.Remove(sale);
+                await _context.SaveChangesAsync();
+                return Ok(new { message = "Último item cancelado. Venda inteira foi removida.", refund = amountToRefund, newTotal = 0, saleDeleted = true });
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Item cancelado com sucesso", refund = amountToRefund, newTotal = sale.TotalAmount, saleDeleted = false });
         }
 
         private bool SaleExists(int id)
